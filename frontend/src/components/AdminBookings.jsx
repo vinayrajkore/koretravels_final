@@ -133,6 +133,33 @@ function AdminBookings() {
                 </div>
             )}
 
+            {/* Confirm / Cancel Modal */}
+            {confirmAction.open && (
+                <div style={{
+                    position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+                    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999
+                }}>
+                    <div style={{ background: "#fff", borderRadius: "12px", padding: "28px", maxWidth: "400px", width: "100%", margin: "20px", textAlign: "center" }}>
+                        <h3 style={{ color: "#0d3d35", marginBottom: "12px", fontSize: "18px" }}>
+                            {confirmAction.type === "confirm" ? "Confirm Booking" : "Cancel Booking"}
+                        </h3>
+                        <p style={{ color: "#555", marginBottom: "20px", fontSize: "14px" }}>
+                            Are you sure you want to {confirmAction.type} this booking?
+                        </p>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            <button onClick={confirmAction.type === "confirm" ? doConfirmBooking : doCancelBooking}
+                                style={{ flex: 1, padding: "11px", background: confirmAction.type === "confirm" ? "#1a7a6e" : "#ff8c00", color: "#fff", border: "none", borderRadius: "7px", fontWeight: "700", cursor: "pointer" }}>
+                                Yes, {confirmAction.type === "confirm" ? "Confirm" : "Cancel"}
+                            </button>
+                            <button onClick={() => setConfirmAction({ open: false, type: null, id: null })}
+                                style={{ flex: 1, padding: "11px", background: "#eee", color: "#333", border: "none", borderRadius: "7px", fontWeight: "600", cursor: "pointer" }}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ color: "#0d3d35", fontSize: "20px", display: "flex", alignItems: "center", gap: 8 }}>
                     <IcTicket /> Manage Bookings
