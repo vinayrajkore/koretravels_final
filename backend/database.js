@@ -627,7 +627,10 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
         try {
             const photosArray = JSON.parse(b.photos || "[]");
             if (photosArray.length > 0) {
-                const limitedPhotos = photosArray.filter(p => p && p.startsWith('http')).slice(0, 3);
+                const limitedPhotos = photosArray
+                    .filter(p => p && p.startsWith('http'))
+                    .map(p => p.includes('/upload/') ? p.replace('/upload/', '/upload/c_scale,w_300,q_auto,f_auto/') : p)
+                    .slice(0, 3);
                 
                 if (limitedPhotos.length > 0) {
                 imagesHtml = `
