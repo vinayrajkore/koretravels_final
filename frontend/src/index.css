@@ -1003,6 +1003,15 @@ textarea::placeholder {
   text-align: left;
 }
 
+.stats-grid {
+  padding: 22px 32px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 /* ================================================================
    RESPONSIVE
    ================================================================ */
@@ -1362,6 +1371,12 @@ textarea::placeholder {
     grid-template-columns: 1fr;
     gap: 24px;
     padding: 32px 16px 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 12px;
+    padding: 24px 16px;
   }
 
   .kt-admin-sidebar {

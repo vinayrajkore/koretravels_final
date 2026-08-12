@@ -321,6 +321,7 @@ function Home() {
                         </div>
 
                         <form onSubmit={searchHandler}>
+                            {/* Row 1: From & To */}
                             <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "nowrap", marginBottom: 20 }}>
 
                                 {/* From */}
@@ -390,9 +391,12 @@ function Home() {
                                     )}
                                     <span style={errStyle}>{errors.to_city}</span>
                                 </div>
+                            </div>
 
+                            {/* Row 2: Date */}
+                            <div style={{ marginBottom: 20 }}>
                                 {/* Date */}
-                                <div style={{ flex: "1 1 0", minWidth: 0 }}>
+                                <div style={{ width: "100%", position: "relative" }}>
                                     <label style={lStyle}>{Icon.calendar} Travel Date</label>
                                     <input id="travel_date" type="date" name="travel_date"
                                         value={search.travel_date} onChange={changeHandler}
@@ -434,11 +438,9 @@ function Home() {
             </div>
 
             {/* ── STATS BAR ─────────────────────────────────────────────── */}
-            <div style={{
+            <div className="stats-grid" style={{
                 background: "linear-gradient(90deg, #031a17 0%, #0a5a52 50%, #031a17 100%)",
-                padding: "22px 32px",
-                display: "flex", justifyContent: "center", gap: "clamp(28px, 6vw, 100px)",
-                flexWrap: "wrap", borderBottom: "1px solid rgba(200,255,0,0.1)",
+                borderBottom: "1px solid rgba(200,255,0,0.1)",
             }}>
                 {[
                     { num: "50+",   label: "Bus Routes"      },
