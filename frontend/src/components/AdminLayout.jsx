@@ -44,13 +44,15 @@ function AdminLayout({ children }) {
             <div className={`kt-admin-sidebar ${isSidebarOpen ? "open" : ""}`}>
                 {/* Logo */}
                 <div style={{ padding: "20px 16px 15px", borderBottom: "1px solid rgba(200,255,0,0.2)" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <img src="/logo.png" alt="logo" style={{ height: "38px" }} />
-                            <span style={{ color: "#c8ff00", fontWeight: "700", fontSize: "14px", lineHeight: "1.2" }}>
-                                Kore Travels<br />
-                                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", fontWeight: "400" }}>Admin Panel</span>
-                            </span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div style={{ background: "rgba(200,255,0,0.1)", border: "1px solid rgba(200,255,0,0.3)", padding: "6px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <img src="/logo.png" alt="logo" style={{ height: "32px", objectFit: "contain" }} />
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <span style={{ color: "#fff", fontWeight: "800", fontSize: "17px", letterSpacing: "-0.3px", lineHeight: "1.2" }}>Kore Travels</span>
+                                <span style={{ color: "#c8ff00", fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1.2px", marginTop: "2px" }}>Admin Workspace</span>
+                            </div>
                         </div>
                         {/* Close button for mobile */}
                         <button className="admin-close-btn" onClick={() => setIsSidebarOpen(false)} style={{ background: "transparent", border: "none", color: "#c8ff00", cursor: "pointer", padding: "4px" }}>
@@ -134,10 +136,14 @@ function AdminLayout({ children }) {
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                         </button>
                         
-                        <h2 className="admin-top-title" style={{ color: "#0d3d35", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d3d35" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                            Kore Travels <span className="hide-on-mobile">— Admin</span>
-                        </h2>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <h2 className="admin-top-title" style={{ color: "#062f29", margin: 0, fontSize: "19px", fontWeight: "800", letterSpacing: "-0.5px", display: "flex", alignItems: "center", gap: 6 }}>
+                                Management Console
+                            </h2>
+                            <span className="hide-on-mobile" style={{ color: "#0d7a6f", fontSize: "12px", fontWeight: "600", marginTop: "2px" }}>
+                                Kore Travels Overview
+                            </span>
+                        </div>
                     </div>
                     <span className="hide-on-mobile" style={{
                         background: "#c8ff00", color: "#0d3d35", fontWeight: "700",
