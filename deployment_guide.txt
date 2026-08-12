@@ -41,8 +41,7 @@ PHASE 2: BACKEND DEPLOYMENT (RENDER)
    - DB_USER = <Aiven User (e.g., avnadmin)>
    - DB_PASSWORD = <Aiven Password>
    - DB_NAME = defaultdb
-   - EMAIL_USER = <Your email for nodemailer>
-   - EMAIL_PASS = <Your email App Password>
+   - RESEND_API_KEY = <Your Resend API Key (starts with re_...)>
 7. Click "Create Web Service".
 8. Wait for Render to build and deploy. Once deployed, it will give you a live API URL:
    `https://kore-travels-backend.onrender.com`

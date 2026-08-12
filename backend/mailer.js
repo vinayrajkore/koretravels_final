@@ -1,34 +1,38 @@
-// mailer.js - Gmail SMTP Configuration
-// Uses Gmail App Password from .env (EMAIL_USER + EMAIL_PASS)
-// IMPORTANT: EMAIL_PASS must be a Gmail App Password (not your normal Gmail password)
-// To create one: Google Account → Security → 2-Step Verification → App Passwords
+// mailer.js - Resend HTTP API Configuration
+// Replaces SMTP to bypass Render's free tier port blocking
+// Requires RESEND_API_KEY in .env
 
 require("dotenv").config();
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    family: 4,                          // ✅ Force IPv4 — fixes ENETUNREACH on Render
-    connectionTimeout: 10000,           // 10 seconds
-    greetingTimeout: 10000,
-    auth: {
-        user: process.env.EMAIL_USER,   // e.g. ranuh441@gmail.com
-        pass: process.env.EMAIL_PASS    // 16-char Gmail App Password (no spaces)
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Verify on startup so errors are obvious in the console
-transporter.verify((error) => {
-    if (error) {
-        console.error("⚠️  MAILER ERROR — Emails will NOT be sent!");
-        console.error("   Reason:", error.message);
-        console.error("   Fix: Set EMAIL_USER and EMAIL_PASS (Gmail App Password) in backend/.env");
-        console.error("   Guide: https://support.google.com/accounts/answer/185833");
-    } else {
-        console.log("✅ Mailer ready — using", process.env.EMAIL_USER);
+// We export a dummy "transporter" that mimics nodemailer's sendMail function
+// This way we don't have to rewrite any of the email code in database.js!
+const transporter = {
+    sendMail: async (options) => {
+        try {
+            // Note: If you haven't verified a domain on Resend, you MUST use "onboarding@resend.dev"
+            // as the 'from' address, and you can only send emails to your OWN registered email address.
+            const { data, error } = await resend.emails.send({
+                from: "Kore Travels <onboarding@resend.dev>", 
+                to: options.to,
+                subject: options.subject,
+                html: options.html
+            });
+
+            if (error) {
+                console.error("❌ Resend API Error:", error.message);
+                throw error;
+            }
+
+            console.log("✅ Email sent via Resend:", data.id);
+            return data;
+        } catch (err) {
+            console.error("❌ Failed to send email:", err.message);
+            throw err;
+        }
     }
-});
+};
 
 module.exports = transporter;
