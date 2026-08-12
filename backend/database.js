@@ -79,7 +79,7 @@ app.post("/register", async (req, res) => {
                       <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                         <tr>
                           <td style="background:linear-gradient(135deg, #0d3d35 0%, #1a7a6e 100%);padding:40px 30px;text-align:center;">
-                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:65px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
+                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:65px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
                             <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:-0.5px;">Welcome to Kore Travels!</h1>
                             <p style="color:#c8ff00;margin:10px 0 0 0;font-size:16px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Your Journey Begins Here</p>
                           </td>
@@ -155,7 +155,7 @@ app.post("/login", async (req, res) => {
                           <table width="500" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                             <tr>
                               <td style="background:linear-gradient(135deg, #0d3d35 0%, #1a7a6e 100%);padding:30px;text-align:center;">
-                                <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:50px;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto;" />
+                                <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:50px;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto;" />
                                 <h2 style="color:#ffffff;margin:0;font-size:22px;">Login Alert</h2>
                               </td>
                             </tr>
@@ -446,7 +446,7 @@ app.post("/bookbus", async (req, res) => {
                       <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                         <tr>
                           <td style="background:linear-gradient(135deg, #0d3d35 0%, #1a7a6e 100%);padding:35px 30px;text-align:center;">
-                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
+                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
                             <h2 style="color:#ffffff;margin:0;font-size:24px;">Booking Received</h2>
                             <div style="display:inline-block;background-color:rgba(255,255,255,0.2);color:#c8ff00;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:700;margin-top:12px;letter-spacing:1px;text-transform:uppercase;">⏳ Pending Confirmation</div>
                           </td>
@@ -545,7 +545,7 @@ app.put("/cancelbooking/:id", async (req, res) => {
                       <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                         <tr>
                           <td style="background:linear-gradient(135deg, #e53935 0%, #b71c1c 100%);padding:35px 30px;text-align:center;">
-                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
+                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
                             <h2 style="color:#ffffff;margin:0;font-size:26px;">Booking Cancelled</h2>
                           </td>
                         </tr>
@@ -657,7 +657,7 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
                       <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                         <tr>
                           <td style="background:linear-gradient(135deg, #0d3d35 0%, #1a7a6e 100%);padding:35px 30px;text-align:center;">
-                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
+                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
                             <h2 style="color:#ffffff;margin:0;font-size:26px;">Booking Confirmed!</h2>
                             <div style="display:inline-block;background-color:#c8ff00;color:#0d3d35;padding:6px 18px;border-radius:20px;font-size:14px;font-weight:800;margin-top:12px;letter-spacing:1px;text-transform:uppercase;">✅ Confirmed</div>
                           </td>
@@ -758,7 +758,7 @@ app.put("/admin/denybooking/:id", async (req, res) => {
                       <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
                         <tr>
                           <td style="background:linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);padding:35px 30px;text-align:center;">
-                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
+                            <img src="https://res.cloudinary.com/g6idhdc9/image/upload/c_scale,w_200,q_auto,f_auto/v1786489642/Gemini_Generated_Image_14i2kp14i2kp14i2-removed-bg_sxa2do.png" alt="Kore Travels Logo" style="background-color:#ffffff; padding:10px; border-radius:10px; height:60px;margin-bottom:15px;display:block;margin-left:auto;margin-right:auto;" />
                             <h2 style="color:#ffffff;margin:0;font-size:24px;">Booking Declined</h2>
                           </td>
                         </tr>
