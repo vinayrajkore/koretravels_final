@@ -6,10 +6,13 @@ import API_URL from "../api";
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import LoadingOverlay from "./LoadingOverlay";
+import { useToast } from "./Toast";
 
 function Register() {
 
     const navigate = useNavigate();
+    const toast = useToast();
 
     // useState for form fields - same as internship Register.jsx
     const [user, setUser] = useState({
@@ -98,16 +101,14 @@ function Register() {
                 const response = await axios.post(`${API_URL}/register`, user);
                 console.log(response);
 
-                alert(response.data.message);
-
-                // navigate based on flag - same as internship Register.jsx
                 if (response.data.flag > 0) {
-                    navigate("/login");
+                    toast.success(response.data.message || "Account created! Please login.", "Registration Successful 🎉", 4000);
+                    setTimeout(() => navigate("/login"), 1500);
                 } else {
-                    navigate("/register");
+                    toast.error(response.data.message || "Registration failed. Try again.", "Registration Failed");
                 }
             } catch (err) {
-                alert("Error: " + err.message);
+                toast.error("Unable to connect. Please try again.", "Connection Error");
             } finally {
                 setLoading(false);
             }
@@ -115,6 +116,8 @@ function Register() {
     };
 
     return (
+        <>
+        <LoadingOverlay show={loading} text="Creating your account..." />
         <div style={{
             minHeight: "100vh",
             display: "flex",
@@ -217,6 +220,7 @@ function Register() {
 
             </div>
         </div>
+        </>
     );
 }
 

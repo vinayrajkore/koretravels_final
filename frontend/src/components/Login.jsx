@@ -6,10 +6,13 @@ import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
+import LoadingOverlay from "./LoadingOverlay";
+import { useToast } from "./Toast";
 
 function Login() {
 
     const navigate = useNavigate();
+    const toast = useToast();
 
     // useState - same as internship Login.jsx
     const [user, setUser] = useState({
@@ -69,21 +72,27 @@ function Login() {
                     sessionStorage.setItem("userid",    response.data.uid);
                     sessionStorage.setItem("useremail", response.data.umail);
 
-                    alert("Logged In Successfully !!");
+                    toast.success(
+                        `Welcome back, ${response.data.uname}! Redirecting...`,
+                        "Logged In Successfully 🎉",
+                        3000
+                    );
 
                     // Redirect admin to admin panel, users to home
-                    if (isAdmin) {
-                        navigate("/admin");
-                    } else {
-                        navigate("/");
-                    }
+                    setTimeout(() => {
+                        if (isAdmin) {
+                            navigate("/admin");
+                        } else {
+                            navigate("/");
+                        }
+                    }, 1200);
 
                 } else {
-                    alert(response.data.message);
+                    toast.error(response.data.message, "Login Failed");
                 }
 
             } catch (err) {
-                alert("Error: " + err.message);
+                toast.error("Unable to connect. Please try again.", "Connection Error");
             } finally {
                 setLoading(false);
             }
@@ -91,82 +100,86 @@ function Login() {
     };
 
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "30px 20px",
-            background: "linear-gradient(150deg, #031a17 0%, #062f29 40%, #0a5a52 100%)",
-        }}>
+        <>
+            <LoadingOverlay show={loading} text="Signing you in..." />
 
             <div style={{
-                width: "100%", maxWidth: "440px",
-                background: "rgba(255,255,255,0.97)",
-                borderRadius: 24,
-                boxShadow: "0 24px 80px rgba(3,26,23,0.45), 0 0 0 1px rgba(200,255,0,0.08)",
-                overflow: "hidden",
-                backdropFilter: "blur(20px)",
+                minHeight: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "30px 20px",
+                background: "linear-gradient(150deg, #031a17 0%, #062f29 40%, #0a5a52 100%)",
             }}>
 
-                <div className="kt-card-header" style={{ textAlign: "center", padding: "32px 30px 28px" }}>
-                    <div style={{ marginBottom: 14 }}>
-                        <img src="/logo.png" alt="Kore Travels" style={{ height: "58px", filter: "drop-shadow(0 0 12px rgba(200,255,0,0.5))" }} />
+                <div style={{
+                    width: "100%", maxWidth: "440px",
+                    background: "rgba(255,255,255,0.97)",
+                    borderRadius: 24,
+                    boxShadow: "0 24px 80px rgba(3,26,23,0.45), 0 0 0 1px rgba(200,255,0,0.08)",
+                    overflow: "hidden",
+                    backdropFilter: "blur(20px)",
+                }}>
+
+                    <div className="kt-card-header" style={{ textAlign: "center", padding: "32px 30px 28px" }}>
+                        <div style={{ marginBottom: 14 }}>
+                            <img src="/logo.png" alt="Kore Travels" style={{ height: "58px", filter: "drop-shadow(0 0 12px rgba(200,255,0,0.5))" }} />
+                        </div>
+                        <h2 style={{ marginBottom: 4 }}>Welcome Back</h2>
+                        <p>Sign in to your Kore Travels account</p>
                     </div>
-                    <h2 style={{ marginBottom: 4 }}>Welcome Back</h2>
-                    <p>Sign in to your Kore Travels account</p>
+
+                    {/* Login Form */}
+                    <div className="kt-card-body">
+                        <form onSubmit={submitHandler} className="kt-form">
+
+                            {/* Email */}
+                            <div className="form-group">
+                                <label>Email Address</label>
+                                <input
+                                    type="text"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    value={user.email}
+                                    onChange={changeHandler}
+                                />
+                                <span className="error-msg">{errors.email}</span>
+                            </div>
+
+                            {/* Password */}
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    value={user.password}
+                                    onChange={changeHandler}
+                                />
+                                <span className="error-msg">{errors.password}</span>
+                            </div>
+
+                            {/* Submit */}
+                            <button
+                                type="submit"
+                                className="btn-kt-primary"
+                                style={{ width: "100%", padding: "13px", fontSize: "16px", marginTop: "5px" }}
+                                disabled={loading}
+                            >
+                                {loading ? "Signing in..." : "Sign In"}
+                            </button>
+
+                        </form>
+
+                        <p style={{ textAlign: "center", marginTop: "18px", color: "#666", fontSize: "14px" }}>
+                            New user?{" "}
+                            <Link to="/register" style={{ color: "#1a7a6e", fontWeight: "600" }}>Register here</Link>
+                        </p>
+                    </div>
+
                 </div>
-
-                {/* Login Form */}
-                <div className="kt-card-body">
-                    <form onSubmit={submitHandler} className="kt-form">
-
-                        {/* Email */}
-                        <div className="form-group">
-                            <label>Email Address</label>
-                            <input
-                                type="text"
-                                name="email"
-                                placeholder="Enter your email"
-                                value={user.email}
-                                onChange={changeHandler}
-                            />
-                            <span className="error-msg">{errors.email}</span>
-                        </div>
-
-                        {/* Password */}
-                        <div className="form-group">
-                            <label>Password</label>
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                value={user.password}
-                                onChange={changeHandler}
-                            />
-                            <span className="error-msg">{errors.password}</span>
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            type="submit"
-                            className="btn-kt-primary"
-                            style={{ width: "100%", padding: "13px", fontSize: "16px", marginTop: "5px" }}
-                            disabled={loading}
-                        >
-                            {loading ? "Signing in..." : "Sign In"}
-                        </button>
-
-                    </form>
-
-                    <p style={{ textAlign: "center", marginTop: "18px", color: "#666", fontSize: "14px" }}>
-                        New user?{" "}
-                        <Link to="/register" style={{ color: "#1a7a6e", fontWeight: "600" }}>Register here</Link>
-                    </p>
-                </div>
-
             </div>
-        </div>
+        </>
     );
 }
 

@@ -2,16 +2,18 @@ import API_URL from "../api";
 // BookingForm.jsx - Passenger Details + Confirm Booking
 // Now includes: age, gender, pre-filled email, boarding/drop points
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import LoadingOverlay from "./LoadingOverlay";
+import { useToast } from "./Toast";
 
 function BookingForm() {
 
     const { busId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const toast = useToast();
 
     const bus           = location.state?.bus           || {};
     const selectedSeats = location.state?.selectedSeats || [];
@@ -81,7 +83,11 @@ function BookingForm() {
 
     const submitHandler = async (e) => {
         e.preventDefault();
-        if (!user_id) { alert("Please login to book!"); navigate("/login"); return; }
+        if (!user_id) {
+            toast.error("Please login to book your seat.", "Not Logged In");
+            navigate("/login");
+            return;
+        }
         if (validate()) {
             try {
                 setLoading(true);
@@ -98,10 +104,14 @@ function BookingForm() {
                     boarding_point:   boardingPoint,
                     drop_point:       dropPoint,
                 });
-                alert(`Booking Received! ID: #${response.data.booking_id}\nConfirmation email sent!`);
-                navigate("/mybookings");
+                toast.success(
+                    `Booking ID: #${response.data.booking_id} — A confirmation email has been sent!`,
+                    "Booking Confirmed 🎉",
+                    6000
+                );
+                setTimeout(() => navigate("/mybookings"), 2000);
             } catch (err) {
-                alert("Booking failed: " + err.message);
+                toast.error("Booking failed. Please try again.", "Booking Error");
             } finally {
                 setLoading(false);
             }
@@ -117,6 +127,8 @@ function BookingForm() {
     const errStyle   = { color: "#e53935", fontSize: "12px", marginTop: "4px", display: "block" };
 
     return (
+        <>
+        <LoadingOverlay show={loading} text="Confirming your booking..." />
         <div className="page-wrapper">
             <div style={{ maxWidth: "780px", margin: "0 auto" }}>
 
@@ -295,6 +307,7 @@ function BookingForm() {
 
             </div>
         </div>
+        </>
     );
 }
 
