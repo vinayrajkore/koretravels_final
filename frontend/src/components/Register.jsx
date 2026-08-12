@@ -102,7 +102,7 @@ function Register() {
                 console.log(response);
 
                 if (response.data.flag > 0) {
-                    toast.success(response.data.message || "Account created! Please login.", "Registration Successful 🎉", 4000);
+                    toast.success(response.data.message || "Account created! Please login.", "Registration Successful", 4000);
                     setTimeout(() => navigate("/login"), 1500);
                 } else {
                     toast.error(response.data.message || "Registration failed. Try again.", "Registration Failed");

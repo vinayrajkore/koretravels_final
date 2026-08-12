@@ -5,10 +5,12 @@ import API_URL from "../api";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "./Toast";
 
 function MyBookings() {
 
     const navigate = useNavigate();
+    const toast = useToast();
 
     // Get logged-in user ID from localStorage - same as ListProduct.jsx
     const user_id = localStorage.getItem("u_id");
@@ -17,6 +19,7 @@ function MyBookings() {
     // useState for bookings - same as internship UserList.jsx
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
 
     // useEffect to load bookings on page load - same pattern as internship
     useEffect(() => {
@@ -39,16 +42,20 @@ function MyBookings() {
     };
 
     // cancelBooking - same axios.put pattern as internship putdata route
-    const cancelBooking = async (id) => {
-        const confirm = window.confirm("Are you sure you want to cancel this booking?");
-        if (!confirm) return;
+    const cancelBooking = (id) => {
+        setConfirmModal({ open: true, id });
+    };
+
+    const doCancelBooking = async () => {
+        const id = confirmModal.id;
+        setConfirmModal({ open: false, id: null });
 
         try {
             const res = await axios.put(`${API_URL}/cancelbooking/${id}`);
-            alert(res.data.message);
+            toast.success(res.data.message || "Booking cancelled", "Cancelled");
             getBookings(); // Reload list - same pattern as internship delete + reload
         } catch (err) {
-            alert("Error: " + err.message);
+            toast.error("Error: " + err.message, "Cancellation Failed");
         }
     };
 
@@ -76,6 +83,20 @@ function MyBookings() {
     }
 
     return (
+        <>
+        {/* Cancel Confirmation Modal */}
+        {confirmModal.open && (
+            <div style={{ position:"fixed",inset:0,zIndex:9999,background:"rgba(3,26,23,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                <div style={{ background:"linear-gradient(135deg,#062f29,#0a4a3f)",border:"1px solid rgba(200,255,0,0.2)",borderRadius:18,padding:"28px 30px",minWidth:320,maxWidth:460,boxShadow:"0 24px 60px rgba(0,0,0,0.5)",color:"#fff",fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                    <h3 style={{ margin:"0 0 8px",color:"#f87171",fontSize:17 }}>Cancel Booking?</h3>
+                    <p style={{ margin:"0 0 22px",color:"rgba(255,255,255,0.6)",fontSize:13,lineHeight:1.6 }}>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+                    <div style={{ display:"flex",gap:10,justifyContent:"flex-end" }}>
+                        <button onClick={() => setConfirmModal({ open:false,id:null })} style={{ padding:"9px 20px",borderRadius:9,border:"1px solid rgba(255,255,255,0.15)",background:"transparent",color:"rgba(255,255,255,0.6)",cursor:"pointer",fontSize:13,fontWeight:600 }}>No, Keep It</button>
+                        <button onClick={doCancelBooking} style={{ padding:"9px 22px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#ef4444,#b91c1c)",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:800 }}>Yes, Cancel Booking</button>
+                    </div>
+                </div>
+            </div>
+        )}
         <div className="page-wrapper">
             <div style={{ maxWidth: "950px", margin: "0 auto" }}>
 
@@ -253,6 +274,7 @@ function MyBookings() {
 
             </div>
         </div>
+        </>
     );
 }
 

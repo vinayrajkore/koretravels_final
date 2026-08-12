@@ -1,161 +1,199 @@
-// Toast.jsx - Premium animated toast notification system
+// Toast.jsx - Premium toast notification system matching Kore Travels brand
+// Brand: Dark teal #062f29 | Accent #c8ff00 | Font: Plus Jakarta Sans
+//
 // Usage:
-//   import { useToast, ToastContainer } from "./Toast";
 //   const toast = useToast();
-//   toast.success("Logged in successfully!");
-//   toast.error("Something went wrong.");
-//   toast.info("Redirecting...");
-//   toast.warning("Session expiring soon.");
-//   <ToastContainer />  ← place once in your component tree
+//   toast.success("Done!", "Title");
+//   toast.error("Failed!", "Title");
+//   <ToastProvider> wraps the entire app in main.jsx
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 const ToastContext = createContext(null);
 
-const ICONS = {
-    success: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="9 12 11 14 15 10" />
-        </svg>
-    ),
-    error: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-    ),
-    warning: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg>
-    ),
-    info: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-    ),
-};
+// ── Icons ──────────────────────────────────────────────────────
+const IcSuccess = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+);
+const IcError = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+);
+const IcWarning = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+);
+const IcInfo = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+);
 
+// ── Brand-matched themes ───────────────────────────────────────
+// All share the same dark teal base; only accent color changes
 const THEMES = {
     success: {
-        bg: "linear-gradient(135deg, #052e16 0%, #14532d 100%)",
-        border: "rgba(34,197,94,0.4)",
-        iconColor: "#4ade80",
-        bar: "#22c55e",
-        title: "#86efac",
+        bg:         "linear-gradient(135deg, #031a17 0%, #062f29 60%, #073d33 100%)",
+        border:     "rgba(200, 255, 0, 0.35)",
+        iconBg:     "rgba(200, 255, 0, 0.12)",
+        iconColor:  "#c8ff00",
+        bar:        "#c8ff00",
+        titleColor: "#c8ff00",
+        label:      "SUCCESS",
+        labelColor: "rgba(200, 255, 0, 0.55)",
     },
     error: {
-        bg: "linear-gradient(135deg, #1c0a0a 0%, #450a0a 100%)",
-        border: "rgba(239,68,68,0.4)",
-        iconColor: "#f87171",
-        bar: "#ef4444",
-        title: "#fca5a5",
+        bg:         "linear-gradient(135deg, #1c0505 0%, #2d0a0a 60%, #3a0d0d 100%)",
+        border:     "rgba(239, 68, 68, 0.4)",
+        iconBg:     "rgba(239, 68, 68, 0.12)",
+        iconColor:  "#f87171",
+        bar:        "#ef4444",
+        titleColor: "#fca5a5",
+        label:      "ERROR",
+        labelColor: "rgba(248, 113, 113, 0.6)",
     },
     warning: {
-        bg: "linear-gradient(135deg, #1c1202 0%, #451a03 100%)",
-        border: "rgba(251,191,36,0.4)",
-        iconColor: "#fbbf24",
-        bar: "#f59e0b",
-        title: "#fcd34d",
+        bg:         "linear-gradient(135deg, #1c1002 0%, #2d1a03 60%, #3a2205 100%)",
+        border:     "rgba(251, 191, 36, 0.4)",
+        iconBg:     "rgba(251, 191, 36, 0.12)",
+        iconColor:  "#fbbf24",
+        bar:        "#f59e0b",
+        titleColor: "#fcd34d",
+        label:      "WARNING",
+        labelColor: "rgba(251, 191, 36, 0.6)",
     },
     info: {
-        bg: "linear-gradient(135deg, #0a1628 0%, #0c2044 100%)",
-        border: "rgba(59,130,246,0.4)",
-        iconColor: "#60a5fa",
-        bar: "#3b82f6",
-        title: "#93c5fd",
+        bg:         "linear-gradient(135deg, #031a17 0%, #062f29 60%, #073d33 100%)",
+        border:     "rgba(13, 122, 111, 0.5)",
+        iconBg:     "rgba(13, 122, 111, 0.15)",
+        iconColor:  "#5eead4",
+        bar:        "#0d7a6f",
+        titleColor: "#99f6e4",
+        label:      "INFO",
+        labelColor: "rgba(94, 234, 212, 0.5)",
     },
 };
 
-let toastId = 0;
+const ICONS = { success: <IcSuccess />, error: <IcError />, warning: <IcWarning />, info: <IcInfo /> };
 
-function ToastItem({ toast, onRemove }) {
+let _id = 0;
+
+// ── Single Toast Card ─────────────────────────────────────────
+function ToastCard({ toast, onRemove }) {
     const [visible, setVisible] = useState(false);
     const [leaving, setLeaving] = useState(false);
-    const theme = THEMES[toast.type] || THEMES.info;
-    const duration = toast.duration || 4000;
+    const t = THEMES[toast.type] || THEMES.info;
+    const dur = toast.duration || 4500;
 
     useEffect(() => {
-        // Mount animation
-        const t1 = setTimeout(() => setVisible(true), 20);
-        // Auto-remove
-        const t2 = setTimeout(() => {
-            setLeaving(true);
-            setTimeout(() => onRemove(toast.id), 350);
-        }, duration);
+        const t1 = setTimeout(() => setVisible(true), 30);
+        const t2 = setTimeout(() => dismiss(), dur);
         return () => { clearTimeout(t1); clearTimeout(t2); };
     }, []);
 
-    const handleClose = () => {
+    const dismiss = () => {
         setLeaving(true);
-        setTimeout(() => onRemove(toast.id), 350);
+        setTimeout(() => onRemove(toast.id), 380);
     };
 
     return (
-        <div style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 14,
-            minWidth: 320,
-            maxWidth: 420,
-            padding: "16px 18px 20px",
-            borderRadius: 16,
-            background: theme.bg,
-            border: `1px solid ${theme.border}`,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)",
-            overflow: "hidden",
-            cursor: "pointer",
-            transition: "all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            transform: visible && !leaving ? "translateX(0) scale(1)" : "translateX(110%) scale(0.95)",
-            opacity: visible && !leaving ? 1 : 0,
-        }}
-            onClick={handleClose}
+        <div
+            onClick={dismiss}
             title="Click to dismiss"
+            style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+                minWidth: 300,
+                maxWidth: 400,
+                padding: "14px 16px 18px",
+                borderRadius: 14,
+                background: t.bg,
+                border: `1px solid ${t.border}`,
+                boxShadow: `0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)`,
+                backdropFilter: "blur(16px)",
+                cursor: "pointer",
+                overflow: "hidden",
+                // Slide + fade animation
+                transition: "transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+                transform: visible && !leaving ? "translateX(0) scale(1)" : "translateX(120%) scale(0.9)",
+                opacity: visible && !leaving ? 1 : 0,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
         >
-            {/* Animated progress bar */}
+            {/* Left accent bar */}
+            <div style={{
+                position: "absolute",
+                left: 0, top: 0, bottom: 0,
+                width: 3,
+                background: t.bar,
+                borderRadius: "14px 0 0 14px",
+            }} />
+
+            {/* Progress bar (bottom) */}
             <div style={{
                 position: "absolute",
                 bottom: 0, left: 0,
-                height: 3,
-                background: theme.bar,
-                borderRadius: "0 0 0 16px",
-                width: "100%",
+                height: 2,
+                background: t.bar,
+                opacity: 0.5,
+                animation: `ktBar ${dur}ms linear forwards`,
                 transformOrigin: "left",
-                animation: `ktToastBar ${duration}ms linear forwards`,
             }} />
 
-            {/* Icon */}
+            {/* Icon bubble */}
             <div style={{
                 flexShrink: 0,
-                color: theme.iconColor,
-                marginTop: 1,
-                filter: `drop-shadow(0 0 6px ${theme.iconColor}60)`,
+                width: 36, height: 36,
+                borderRadius: 10,
+                background: t.iconBg,
+                border: `1px solid ${t.border}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: t.iconColor,
+                marginLeft: 6,
             }}>
                 {ICONS[toast.type]}
             </div>
 
-            {/* Content */}
+            {/* Text */}
             <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                    color: t.labelColor,
+                    marginBottom: 2,
+                }}>
+                    {t.label}
+                </div>
                 {toast.title && (
                     <div style={{
-                        color: theme.title,
+                        color: t.titleColor,
                         fontWeight: 700,
                         fontSize: 14,
                         marginBottom: 3,
-                        letterSpacing: "0.2px",
+                        lineHeight: 1.3,
                     }}>
                         {toast.title}
                     </div>
                 )}
                 <div style={{
-                    color: "rgba(255,255,255,0.85)",
+                    color: "rgba(255,255,255,0.75)",
                     fontSize: 13,
                     lineHeight: 1.5,
                     wordBreak: "break-word",
@@ -164,29 +202,33 @@ function ToastItem({ toast, onRemove }) {
                 </div>
             </div>
 
-            {/* Close ✕ */}
+            {/* Close button */}
             <button
-                onClick={(e) => { e.stopPropagation(); handleClose(); }}
+                onClick={e => { e.stopPropagation(); dismiss(); }}
                 style={{
                     flexShrink: 0,
-                    background: "none",
-                    border: "none",
-                    color: "rgba(255,255,255,0.35)",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.4)",
                     cursor: "pointer",
-                    padding: "2px 4px",
-                    fontSize: 18,
+                    width: 24, height: 24,
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
                     lineHeight: 1,
-                    borderRadius: 4,
-                    transition: "color 0.2s",
+                    marginTop: 1,
+                    transition: "all 0.15s",
                 }}
-                onMouseOver={e => e.currentTarget.style.color = "#fff"}
-                onMouseOut={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}
+                onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#fff"; }}
+                onMouseOut={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}
             >
                 ×
             </button>
 
             <style>{`
-                @keyframes ktToastBar {
+                @keyframes ktBar {
                     from { transform: scaleX(1); }
                     to   { transform: scaleX(0); }
                 }
@@ -195,33 +237,33 @@ function ToastItem({ toast, onRemove }) {
     );
 }
 
+// ── Context Provider ──────────────────────────────────────────
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
 
-    const addToast = useCallback(({ type, title, message, duration }) => {
-        const id = ++toastId;
+    const add = useCallback(({ type, title, message, duration }) => {
+        const id = ++_id;
         setToasts(prev => [...prev, { id, type, title, message, duration }]);
     }, []);
 
-    const removeToast = useCallback((id) => {
+    const remove = useCallback((id) => {
         setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 
     const toast = {
-        success: (message, title = "Success", duration) => addToast({ type: "success", title, message, duration }),
-        error:   (message, title = "Error",   duration) => addToast({ type: "error",   title, message, duration }),
-        warning: (message, title = "Warning", duration) => addToast({ type: "warning", title, message, duration }),
-        info:    (message, title = "Info",    duration) => addToast({ type: "info",    title, message, duration }),
+        success: (message, title = "Success", duration) => add({ type: "success", title, message, duration }),
+        error:   (message, title = "Error",   duration) => add({ type: "error",   title, message, duration }),
+        warning: (message, title = "Warning", duration) => add({ type: "warning", title, message, duration }),
+        info:    (message, title = "Info",    duration) => add({ type: "info",    title, message, duration }),
     };
 
     return (
         <ToastContext.Provider value={toast}>
             {children}
-            {/* Toast container */}
             <div style={{
                 position: "fixed",
-                top: 20,
-                right: 20,
+                top: 16,
+                right: 16,
                 zIndex: 999999,
                 display: "flex",
                 flexDirection: "column",
@@ -230,7 +272,7 @@ export function ToastProvider({ children }) {
             }}>
                 {toasts.map(t => (
                     <div key={t.id} style={{ pointerEvents: "all" }}>
-                        <ToastItem toast={t} onRemove={removeToast} />
+                        <ToastCard toast={t} onRemove={remove} />
                     </div>
                 ))}
             </div>

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
+import { useToast } from "./Toast";
 
 // ── Seat layout configs ──────────────────────────────────────────
 const LAYOUT_CONFIG = {
@@ -216,6 +217,7 @@ function LayoutPreview({ layout }) {
 
 function AddBus() {
     const navigate = useNavigate();
+    const toast = useToast();
 
     const [bus, setBus] = useState({
         bus_name: "", bus_number: "", from_city: "", to_city: "",
@@ -298,12 +300,14 @@ function AddBus() {
                 formData.append("bus_images", file);
             });
 
-            await axios.post(`${API_URL}/addbus`, formData);
-            alert("✅ Bus Added Successfully!!");
+            await axios.post(`${API_URL}/addbus`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            toast.success("Bus Added Successfully", "Success");
             navigate("/admin/buses");
 
         } catch (err) {
-            alert("Error: " + err.message);
+            toast.error("Error: " + err.message, "Upload Failed");
         } finally {
             setLoading(false);
         }

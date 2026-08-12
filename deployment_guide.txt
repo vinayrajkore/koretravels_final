@@ -1,0 +1,77 @@
+===================================================================
+             KORE TRAVELS - DEPLOYMENT GUIDE
+===================================================================
+
+This guide details the exact step-by-step process used to deploy the 
+Kore Travels Bus Booking system to production servers.
+
+PROJECT ARCHITECTURE:
+1. Database: MySQL (Hosted on Aiven)
+2. Backend: Node.js / Express (Hosted on Render)
+3. Frontend: React / Vite (Hosted on Cloudflare Pages)
+
+-------------------------------------------------------------------
+PHASE 1: DATABASE DEPLOYMENT (AIVEN)
+-------------------------------------------------------------------
+1. Create an Account on Aiven (aiven.io).
+2. Click "Create Service" -> Select "MySQL" as the database type.
+3. Choose the Free Plan (Hobbyist).
+4. Select a cloud provider region closest to your users (e.g., AWS / Google Cloud in Asia/Mumbai).
+5. Name the service "kore-travels-db" and click "Create Service".
+6. Wait for the database nodes to start running.
+7. Once running, copy the "Connection parameters" (Host, Port, User, Password) provided by Aiven. 
+8. Use a tool like MySQL Workbench or DBeaver to connect to your new cloud database using those parameters.
+9. Execute your local `busbooking.sql` file inside this cloud database to create the necessary tables (`buses`, `users`, `bookings`, `seats`, etc.).
+
+-------------------------------------------------------------------
+PHASE 2: BACKEND DEPLOYMENT (RENDER)
+-------------------------------------------------------------------
+1. Push your entire `koretravels_final` codebase to your GitHub repository.
+2. Go to Render.com and create a free account.
+3. Click "New +" -> "Web Service".
+4. Connect your GitHub account and select the `koretravels_final` repository.
+5. In the Render configuration settings:
+   - Root Directory: `backend` (This tells Render to only run the backend folder)
+   - Environment: `Node`
+   - Build Command: `npm install`
+   - Start Command: `node database.js` (or `npm start`)
+6. Scroll down to "Environment Variables" and add the database credentials you got from Aiven:
+   - DB_HOST = <Aiven Host URL>
+   - DB_PORT = <Aiven Port>
+   - DB_USER = <Aiven User (e.g., avnadmin)>
+   - DB_PASSWORD = <Aiven Password>
+   - DB_NAME = defaultdb
+   - EMAIL_USER = <Your email for nodemailer>
+   - EMAIL_PASS = <Your email App Password>
+7. Click "Create Web Service".
+8. Wait for Render to build and deploy. Once deployed, it will give you a live API URL:
+   `https://kore-travels-backend.onrender.com`
+
+-------------------------------------------------------------------
+PHASE 3: FRONTEND DEPLOYMENT (CLOUDFLARE PAGES)
+-------------------------------------------------------------------
+1. In your local VS Code, open `frontend/.env`.
+2. Change the `VITE_API_URL` variable to point to your new Render backend URL so the frontend knows where the API lives:
+   `VITE_API_URL=https://kore-travels-backend.onrender.com`
+3. Commit and push this `.env` change to GitHub.
+4. Log into your Cloudflare Dashboard (dash.cloudflare.com).
+5. On the left sidebar, click "Workers & Pages".
+6. Click "Create application" -> select the "Pages" tab -> click "Connect to Git".
+7. Select your `koretravels_final` repository from GitHub.
+8. In the "Set up builds and deployments" section:
+   - Framework preset: `Vite` 
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Root directory (under Advanced): `/frontend` (Critical! This tells Cloudflare where the React app lives).
+9. Click "Save and Deploy".
+10. Cloudflare will pull your code, run the build command, and publish the frontend to a `.pages.dev` domain (e.g., `koretravels.pages.dev`).
+
+-------------------------------------------------------------------
+PHASE 4: LINKING A CUSTOM DOMAIN (OPTIONAL)
+-------------------------------------------------------------------
+1. In Cloudflare Pages, go to your project settings.
+2. Click on the "Custom domains" tab.
+3. Click "Set up a custom domain".
+4. Enter the domain you purchased (e.g., `www.koretravels.com`).
+5. Follow the quick DNS verification steps on-screen. 
+6. Cloudflare will automatically secure the site with SSL (HTTPS) and route your users to the deployed app!

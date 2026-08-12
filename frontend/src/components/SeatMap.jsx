@@ -5,6 +5,7 @@ import API_URL from "../api";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "./Toast";
 
 // ── Seat status color palette ────────────────────────────────────
 const COLORS = {
@@ -89,6 +90,7 @@ function SeatMap() {
     const { busId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const toast = useToast();
 
     const bus = location.state?.bus || {};
     const layout = bus.seat_layout || "2+2 Seater";
@@ -156,15 +158,15 @@ function SeatMap() {
         if (isSelected(n)) {
             setSelectedSeats(prev => prev.filter(s => s !== n));
         } else {
-            if (selectedSeats.length >= 6) { alert("Max 6 seats at a time!"); return; }
+            if (selectedSeats.length >= 6) { toast.warning("Max 6 seats at a time!", "Limit Reached"); return; }
             setSelectedSeats(prev => [...prev, n]);
         }
     };
 
     const proceedToBook = () => {
-        if (!selectedSeats.length) { alert("Please select at least 1 seat!"); return; }
-        if (pickupPoints.length > 0 && !boardingPoint) { alert("Please select a Boarding Point!"); return; }
-        if (dropPoints.length > 0 && !dropPoint) { alert("Please select a Drop Point!"); return; }
+        if (!selectedSeats.length) { toast.warning("Please select at least 1 seat!", "Selection Required"); return; }
+        if (pickupPoints.length > 0 && !boardingPoint) { toast.warning("Please select a Boarding Point!", "Missing Point"); return; }
+        if (dropPoints.length > 0 && !dropPoint) { toast.warning("Please select a Drop Point!", "Missing Point"); return; }
         // Check if user is logged in
         const isLoggedIn = !!sessionStorage.getItem("useremail");
         if (!isLoggedIn) {
@@ -514,6 +516,17 @@ function SeatMap() {
                             color: "#fff", cursor: "pointer", fontSize: 16,
                             display: "flex", alignItems: "center", justifyContent: "center",
                         }}>✕</button>
+
+                        <div style={{ textAlign: "center", marginBottom: 20 }}>
+                            <div style={{
+                                width: 50, height: 50, borderRadius: "50%", background: "#f8fafc",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                margin: "0 auto 12px", boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+                            }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d7a6f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <h3 style={{ margin: 0, fontSize: 18, color: "#fff", fontWeight: 800 }}>Sign In to Book</h3>
+                        </div>
 
                         {/* Offer badge */}
                         <div style={{

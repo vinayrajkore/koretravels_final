@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
+import { useToast } from "./Toast";
 
 // ── Seat layout configs (same as AddBus.jsx) ──────────────────
 const LAYOUT_CONFIG = {
@@ -42,8 +43,9 @@ function LayoutPreview({ layout }) {
 
 function EditBus() {
 
-    const { id } = useParams();          // same useParams as internship EditUser.jsx
+    const { id } = useParams();
     const navigate = useNavigate();
+    const toast = useToast();
 
     // useState - same as EditUser.jsx pattern
     const [bus, setBus] = useState({
@@ -116,7 +118,7 @@ function EditBus() {
             setDropPoints(parsePoints(b.drop_points));
 
             setOldImage(b.bus_image);
-        } catch (err) { alert("Error loading bus: " + err.message); }
+        } catch (err) { toast.error("Could not load bus: " + err.message, "Error"); }
         finally { setFetching(false); }
     };
 
@@ -138,7 +140,7 @@ function EditBus() {
     const submitHandler = async (e) => {
         e.preventDefault();
         if (!bus.bus_name.trim() || !bus.bus_number.trim() || !bus.from_city || !bus.to_city || !bus.price) {
-            alert("Please fill all required fields");
+            toast.warning("Please fill all required fields", "Missing Fields");
             return;
         }
 
@@ -154,10 +156,10 @@ function EditBus() {
             });
 
             await axios.put(`${API_URL}/editbus/${id}`, formData);
-            alert("✅ Bus Updated Successfully!!");
+            toast.success("Bus Updated Successfully", "Success");
             navigate("/admin/buses");
         } catch (err) {
-            alert("Error: " + err.message);
+            toast.error("Error: " + err.message, "Update Failed");
         } finally {
             setLoading(false);
         }
