@@ -477,6 +477,14 @@ app.post("/bookbus", async (req, res) => {
                                 <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">Route</td>
                                 <td style="color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${bus.from_city} → ${bus.to_city}</td>
                               </tr>
+                              ${boarding_point ? `<tr>
+                                <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">🟢 Boarding Point</td>
+                                <td style="color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${boarding_point}</td>
+                              </tr>` : ''}
+                              ${drop_point ? `<tr>
+                                <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">🔴 Drop Point</td>
+                                <td style="color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${drop_point}</td>
+                              </tr>` : ''}
                               <tr>
                                 <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">Travel Date</td>
                                 <td style="color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${bus.travel_date}</td>
@@ -639,7 +647,7 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
             const photosArray = JSON.parse(b.photos || "[]");
             if (photosArray.length > 0) {
                 const limitedPhotos = photosArray
-                    .filter(p => p && p.startsWith('http'))
+                    .filter(p => p && typeof p === 'string' && p.startsWith('https://res.cloudinary.com/'))
                     .map(p => p.includes('/upload/') ? p.replace('/upload/', '/upload/c_scale,w_300,q_auto,f_auto/') : p)
                     .slice(0, 3);
                 
@@ -691,6 +699,14 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
                                 <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">Route</td>
                                 <td style="color:#0f172a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">${b.from_city} → ${b.to_city}</td>
                               </tr>
+                              ${b.boarding_point ? `<tr>
+                                <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">🟢 Boarding Point</td>
+                                <td style="color:#0f172a;font-size:14px;font-weight:700;border-bottom:1px solid #e2e8f0;">${b.boarding_point}</td>
+                              </tr>` : ''}
+                              ${b.drop_point ? `<tr>
+                                <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">🔴 Drop Point</td>
+                                <td style="color:#0f172a;font-size:14px;font-weight:700;border-bottom:1px solid #e2e8f0;">${b.drop_point}</td>
+                              </tr>` : ''}
                               <tr>
                                 <td style="color:#64748b;font-size:14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">Bus & Date</td>
                                 <td style="color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${b.bus_name}<br/>${b.travel_date} at ${b.departure_time}</td>
@@ -719,7 +735,7 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:30px;">
                               <tr>
                                 <td align="center">
-                                  <a href="http://localhost:5173/mybookings" style="display:inline-block;padding:14px 36px;background-color:#1a7a6e;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;box-shadow:0 4px 12px rgba(26,122,110,0.3);">View Booking online</a>
+                                  <a href="${process.env.FRONTEND_URL || 'https://koretravels-final.pages.dev'}/mybookings" style="display:inline-block;padding:14px 36px;background-color:#1a7a6e;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;box-shadow:0 4px 12px rgba(26,122,110,0.3);">View Booking online</a>
                                 </td>
                               </tr>
                             </table>
