@@ -72,13 +72,15 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   background: #031a17;
   color: var(--grey-900);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* ── Global Input Reset (stops dark-mode override) ────────── */
@@ -1262,11 +1264,12 @@ textarea::placeholder {
   /* Navbar */
   .kt-navbar {
     padding: 12px 14px;
-    height: 60px;
-    flex-direction: row;
-    gap: 8px;
+    min-height: 60px;
+    height: auto;
+    flex-direction: column;
+    gap: 12px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .kt-navbar .site-name {
@@ -1275,10 +1278,10 @@ textarea::placeholder {
   }
 
   .kt-navbar nav {
-    width: auto;
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 6px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .kt-navbar nav a,
