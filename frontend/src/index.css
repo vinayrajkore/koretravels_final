@@ -1008,7 +1008,8 @@ textarea::placeholder {
    ================================================================ */
 @media (max-width: 768px) {
   .search-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
   }
 
   .kt-hero h1 {
