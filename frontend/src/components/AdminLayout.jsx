@@ -41,15 +41,21 @@ function AdminLayout({ children }) {
             )}
 
             {/* ── Sidebar ─────────────────────────────────── */}
-            <div className={`kt-admin-sidebar ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}>
+            <div className={`kt-admin-sidebar ${isSidebarOpen ? "open" : ""}`}>
                 {/* Logo */}
                 <div style={{ padding: "20px 16px 15px", borderBottom: "1px solid rgba(200,255,0,0.2)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-                        <img src="/logo.png" alt="logo" style={{ height: "38px" }} />
-                        <span style={{ color: "#c8ff00", fontWeight: "700", fontSize: "14px", lineHeight: "1.2" }}>
-                            Kore Travels<br />
-                            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", fontWeight: "400" }}>Admin Panel</span>
-                        </span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <img src="/logo.png" alt="logo" style={{ height: "38px" }} />
+                            <span style={{ color: "#c8ff00", fontWeight: "700", fontSize: "14px", lineHeight: "1.2" }}>
+                                Kore Travels<br />
+                                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", fontWeight: "400" }}>Admin Panel</span>
+                            </span>
+                        </div>
+                        {/* Close button for mobile */}
+                        <button className="admin-close-btn" onClick={() => setIsSidebarOpen(false)} style={{ background: "transparent", border: "none", color: "#c8ff00", cursor: "pointer", padding: "4px" }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
                     </div>
                     <div style={{ background: "rgba(200,255,0,0.12)", borderRadius: "6px", padding: "7px 10px", marginTop: "8px" }}>
                         <div style={{ color: "#c8ff00", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: 6 }}>
@@ -63,7 +69,7 @@ function AdminLayout({ children }) {
                 {/* Nav Links */}
                 <nav style={{ flex: 1, padding: "12px 10px" }}>
                     {links.map(link => (
-                        <Link key={link.path} to={link.path} style={{
+                        <Link key={link.path} to={link.path} onClick={() => setIsSidebarOpen(false)} style={{
                             display: "flex", alignItems: "center", gap: "10px",
                             padding: "10px 14px", borderRadius: "8px", marginBottom: "4px",
                             textDecoration: "none", fontSize: "14px", fontWeight: "500",
