@@ -7,7 +7,12 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    family: 4,                          // ✅ Force IPv4 — fixes ENETUNREACH on Render
+    connectionTimeout: 10000,           // 10 seconds
+    greetingTimeout: 10000,
     auth: {
         user: process.env.EMAIL_USER,   // e.g. ranuh441@gmail.com
         pass: process.env.EMAIL_PASS    // 16-char Gmail App Password (no spaces)
