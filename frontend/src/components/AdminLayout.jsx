@@ -133,7 +133,7 @@ function AdminLayout({ children }) {
                             Kore Travels <span className="hide-on-mobile">— Admin</span>
                         </h2>
                     </div>
-                    <span style={{
+                    <span className="hide-on-mobile" style={{
                         background: "#c8ff00", color: "#0d3d35", fontWeight: "700",
                         padding: "4px 14px", borderRadius: "20px", fontSize: "12px"
                     }}>

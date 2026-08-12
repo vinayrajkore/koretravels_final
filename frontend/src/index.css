@@ -1489,9 +1489,6 @@ textarea::placeholder {
   }
 
   /* Admin Sidebar */
-  .kt-admin-layout {
-    flex-direction: column;
-  }
 
   .footer-grid {
     grid-template-columns: 1fr;
@@ -1506,17 +1503,15 @@ textarea::placeholder {
     padding: 24px 16px;
   }
 
-  .kt-admin-sidebar {
-    min-height: auto;
-    width: 100%;
-  }
-
   .kt-admin-content {
     padding: 16px 12px;
     margin-left: 0;
   }
   
   .kt-admin-sidebar {
+    width: 260px;
+    height: 100vh;
+    min-height: 100vh;
     transform: translateX(-100%);
     z-index: 1000;
   }
