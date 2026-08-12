@@ -321,10 +321,10 @@ function Home() {
                         </div>
 
                         <form onSubmit={searchHandler}>
-                            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 20 }}>
+                            <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "nowrap", marginBottom: 20 }}>
 
                                 {/* From */}
-                                <div style={{ flex: "1", minWidth: 160, position: "relative" }}>
+                                <div style={{ flex: "1 1 0", minWidth: 0, position: "relative" }}>
                                     <label style={lStyle}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                                         From
@@ -351,7 +351,7 @@ function Home() {
                                 </div>
 
                                 {/* Swap */}
-                                <div style={{ paddingTop: 24 }}>
+                                <div style={{ paddingTop: 24, flexShrink: 0 }}>
                                     <button type="button" onClick={swapCities} title="Swap cities"
                                         style={{
                                             width: 44, height: 44, borderRadius: "50%",
@@ -365,7 +365,7 @@ function Home() {
                                 </div>
 
                                 {/* To */}
-                                <div style={{ flex: "1", minWidth: 160, position: "relative" }}>
+                                <div style={{ flex: "1 1 0", minWidth: 0, position: "relative" }}>
                                     <label style={lStyle}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#fff"/></svg>
                                         To
@@ -392,7 +392,7 @@ function Home() {
                                 </div>
 
                                 {/* Date */}
-                                <div style={{ flex: "0 0 200px", minWidth: 160 }}>
+                                <div style={{ flex: "1 1 0", minWidth: 0 }}>
                                     <label style={lStyle}>{Icon.calendar} Travel Date</label>
                                     <input id="travel_date" type="date" name="travel_date"
                                         value={search.travel_date} onChange={changeHandler}
