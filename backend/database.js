@@ -305,6 +305,17 @@ app.post("/addbus", upload.array("bus_images", 10), async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// PUT update bus photos only (for delete individual / clear all)
+app.put("/bus/:id/photos", async (req, res) => {
+    try {
+        const { photos } = req.body; // array of URL strings
+        const photosJson = JSON.stringify(Array.isArray(photos) ? photos : []);
+        const first_image = Array.isArray(photos) && photos.length > 0 ? photos[0] : null;
+        await db.query("UPDATE buses SET photos=?, bus_image=? WHERE id=?", [photosJson, first_image, req.params.id]);
+        res.json({ message: "Photos updated successfully", flag: 1 });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 // PUT edit bus with multiple images
 app.put("/editbus/:id", upload.array("bus_images", 10), async (req, res) => {
     try {

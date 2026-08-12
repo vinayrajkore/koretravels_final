@@ -61,6 +61,8 @@ function EditBus() {
     const [oldImage, setOldImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+    const [currentPhotos, setCurrentPhotos] = useState([]);   // live-editable photo list
+    const [deletingPhoto, setDeletingPhoto] = useState(false);
 
     const [pickupPoints, setPickupPoints] = useState([]);
     const [dropPoints, setDropPoints] = useState([]);
@@ -118,8 +120,37 @@ function EditBus() {
             setDropPoints(parsePoints(b.drop_points));
 
             setOldImage(b.bus_image);
+            // Populate editable photo list
+            const photos = (() => {
+                try { return b.photos ? JSON.parse(b.photos) : []; } catch { return []; }
+            })();
+            setCurrentPhotos(photos);
         } catch (err) { toast.error("Could not load bus: " + err.message, "Error"); }
         finally { setFetching(false); }
+    };
+
+    // Delete one photo from DB and UI
+    const deletePhoto = async (index) => {
+        const updated = currentPhotos.filter((_, i) => i !== index);
+        setDeletingPhoto(true);
+        try {
+            await axios.put(`${API_URL}/bus/${id}/photos`, { photos: updated });
+            setCurrentPhotos(updated);
+            toast.success("Image removed!", "Deleted");
+        } catch { toast.error("Could not delete image.", "Error"); }
+        finally { setDeletingPhoto(false); }
+    };
+
+    // Clear all photos from DB and UI
+    const clearAllPhotos = async () => {
+        if (!window.confirm("Delete ALL bus images? This cannot be undone.")) return;
+        setDeletingPhoto(true);
+        try {
+            await axios.put(`${API_URL}/bus/${id}/photos`, { photos: [] });
+            setCurrentPhotos([]);
+            toast.success("All images cleared!", "Cleared");
+        } catch { toast.error("Could not clear images.", "Error"); }
+        finally { setDeletingPhoto(false); }
     };
 
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -370,25 +401,47 @@ function EditBus() {
                         {/* Image */}
                         <div style={{ marginBottom: "24px" }}>
                             <label style={labelStyle}>Bus Photos Upload (Select Multiple)</label>
-                            
-                            {/* Show old JSON array of photos if we have them and no new files are selected */}
-                            {busPhotos.length > 0 && previews.length === 0 ? (
+
+                            {/* Current images with delete buttons */}
+                            {currentPhotos.length > 0 && previews.length === 0 && (
                                 <div style={{ marginBottom: "12px" }}>
-                                    <div style={{ fontSize: "12px", color: "#888", marginBottom: "5px" }}>Current image(s):</div>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                                        <div style={{ fontSize: "12px", color: "#888" }}>Current image(s): ({currentPhotos.length})</div>
+                                        <button type="button" onClick={clearAllPhotos} disabled={deletingPhoto}
+                                            style={{ padding: "5px 12px", background: "#e53935", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                                            🗑️ Clear All Images
+                                        </button>
+                                    </div>
                                     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", border: "2px solid #d0e8e4", padding: "10px", borderRadius: "8px", background: "#f8fafc" }}>
-                                        {busPhotos.map((src, i) => (
-                                            <img key={i} src={src} alt="current"
-                                                style={{ width: "120px", height: "80px", objectFit: "cover", borderRadius: "6px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }} />
+                                        {currentPhotos.map((src, i) => (
+                                            <div key={i} style={{ position: "relative", display: "inline-block" }}>
+                                                <img src={src} alt="current"
+                                                    style={{ width: "120px", height: "80px", objectFit: "cover", borderRadius: "6px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", display: "block" }} />
+                                                <button type="button" onClick={() => deletePhoto(i)} disabled={deletingPhoto}
+                                                    title="Remove this image"
+                                                    style={{
+                                                        position: "absolute", top: "-7px", right: "-7px",
+                                                        width: "22px", height: "22px",
+                                                        background: "#e53935", color: "#fff",
+                                                        border: "2px solid #fff", borderRadius: "50%",
+                                                        fontSize: "12px", fontWeight: "900",
+                                                        cursor: "pointer", display: "flex",
+                                                        alignItems: "center", justifyContent: "center",
+                                                        lineHeight: 1, padding: 0
+                                                    }}>×</button>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
-                            ) : oldImage && previews.length === 0 ? (
+                            )}
+
+                            {currentPhotos.length === 0 && previews.length === 0 && oldImage && (
                                 <div style={{ marginBottom: "12px" }}>
                                     <div style={{ fontSize: "12px", color: "#888", marginBottom: "5px" }}>Current image(s):</div>
                                     <img src={oldImage} alt="current"
                                         style={{ width: "160px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "2px solid #d0e8e4" }} />
                                 </div>
-                            ) : null}
+                            )}
 
                             <input type="file" multiple accept="image/*" onChange={fileHandler} style={{ ...inputStyle, padding: "8px", cursor: "pointer" }} />
                             
