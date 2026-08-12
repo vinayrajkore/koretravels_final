@@ -1,1 +1,0 @@
-const mysql=require('mysql2'); const db=mysql.createConnection({host:'localhost',user:'root',password:'',database:'busbooking'}).promise(); db.query('SELECT id, photos FROM buses WHERE photos LIKE '%cloudinary%'').then(res=>console.log(res[0])).catch(console.error).finally(()=>process.exit(0));

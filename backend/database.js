@@ -892,12 +892,33 @@ app.get("/banners", async (req, res) => {
 app.post("/admin/banners", upload.single("banner_image"), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+        
+        // Cloudinary gives us req.file.path as the secure URL
+        // req.file.filename is the public_id
+        const imageUrl = req.file.path;   // e.g. https://res.cloudinary.com/...
+        
+        if (!imageUrl || !imageUrl.startsWith('http')) {
+            return res.status(500).json({ message: "Cloudinary upload failed — image URL not returned. Check Cloudinary credentials in .env" });
+        }
+        
         const { title } = req.body;
         await db.query(
             "INSERT INTO banners (title, image_filename) VALUES (?, ?)",
-            [title || "", req.file.path]
+            [title || "", imageUrl]
         );
-        res.json({ message: "Banner uploaded successfully", flag: 1 });
+        res.json({ message: "Banner uploaded successfully", flag: 1, url: imageUrl });
+    } catch (err) { 
+        console.error("Banner upload error:", err.message);
+        res.status(500).json({ message: "Upload error: " + err.message }); 
+    }
+});
+
+// PUT /admin/banners/:id — update banner title
+app.put("/admin/banners/:id", async (req, res) => {
+    try {
+        const { title } = req.body;
+        await db.query("UPDATE banners SET title=? WHERE id=?", [title || "", req.params.id]);
+        res.json({ message: "Banner updated successfully", flag: 1 });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

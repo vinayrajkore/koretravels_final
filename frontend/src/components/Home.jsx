@@ -63,9 +63,8 @@ function BannerSlideshow({ banners }) {
                     borderRadius: 20,
                     overflow: "hidden",
                     boxShadow: "0 16px 48px rgba(0,0,0,0.14)",
-                    background: "#f1f5f9",
-                    aspectRatio: banners.length ? undefined : "16/5",
-                    height: 280,
+                    background: "#0d1f1d",
+                    height: 320,
                 }}>
                     {/* Slides */}
                     {banners.map((b, i) => (
@@ -74,11 +73,17 @@ function BannerSlideshow({ banners }) {
                             opacity: i === current ? 1 : 0,
                             transition: "opacity 0.7s ease",
                             pointerEvents: i === current ? "auto" : "none",
+                            background: "#ffffff",
+                            display: "flex", alignItems: "center", justifyContent: "center",
                         }}>
                             <img
                                 src={b.image_filename}
                                 alt={b.title || "Banner"}
-                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                style={{
+                                    maxWidth: "100%", maxHeight: "100%",
+                                    objectFit: "contain",
+                                    display: "block",
+                                }}
                             />
                             {/* Optional caption overlay */}
                             {b.title && (

@@ -52,6 +52,15 @@ function AdminBanners() {
         } catch (err) { alert("Delete failed: " + err.message); }
     };
 
+    const handleEdit = async (id, currentTitle) => {
+        const newTitle = window.prompt("Enter new caption/title:", currentTitle || "");
+        if (newTitle === null) return; // User cancelled
+        try {
+            await axios.put(`${API_URL}/admin/banners/${id}`, { title: newTitle });
+            await loadBanners();
+        } catch (err) { alert("Edit failed: " + err.message); }
+    };
+
     return (
         <AdminLayout>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
@@ -104,7 +113,8 @@ function AdminBanners() {
                                 }}
                             />
                             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 5 }}>
-                                ✓ Supports: JPEG / JPG, PNG, WebP, GIF — Recommended size: 1200×400px
+                                ✓ Supports: JPEG / JPG, PNG, WebP, GIF &nbsp;—&nbsp;
+                                <span style={{ color: "#0d7a6f", fontWeight: 700 }}>Recommended: 1200×400px (3:1 ratio, landscape)</span>
                             </div>
                         </div>
                         <button type="submit" disabled={uploading} style={{
@@ -119,8 +129,8 @@ function AdminBanners() {
 
                     {/* Image Preview */}
                     {preview && (
-                        <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", maxHeight: 160, border: "1.5px solid #e2e8f0" }}>
-                            <img src={preview} alt="Preview" style={{ width: "100%", height: 160, objectFit: "cover" }} />
+                        <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", border: "1.5px solid #e2e8f0", background: "#0d1f1d", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
+                            <img src={preview} alt="Preview" style={{ maxWidth: "100%", maxHeight: 200, objectFit: "contain", display: "block" }} />
                         </div>
                     )}
                 </form>
@@ -146,11 +156,11 @@ function AdminBanners() {
                             onMouseOver={e => e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,0,0,0.12)"}
                             onMouseOut={e => e.currentTarget.style.boxShadow = "0 3px 12px rgba(0,0,0,0.07)"}
                         >
-                            <div style={{ position: "relative", height: 160 }}>
+                            <div style={{ position: "relative", height: 180, overflow: "hidden", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <img
                                     src={b.image_filename}
                                     alt={b.title || "Banner"}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                    style={{ maxWidth: "100%", maxHeight: "180px", objectFit: "contain", display: "block" }}
                                 />
                                 <div style={{
                                     position: "absolute", top: 10, left: 10,
@@ -160,28 +170,43 @@ function AdminBanners() {
                                     #{i + 1}
                                 </div>
                             </div>
-                            <div style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", marginBottom: 2 }}>
+                            <div style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                                <div style={{ overflow: "hidden", flex: 1 }}>
+                                    <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                         {b.title || <span style={{ color: "#94a3b8", fontStyle: "italic" }}>No caption</span>}
                                     </div>
-                                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                                    <div style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                         {b.image_filename}
                                     </div>
                                 </div>
-                                <button onClick={() => handleDelete(b.id)} style={{
-                                    background: "#fff5f5", border: "1px solid #fecaca",
-                                    color: "#dc2626", borderRadius: 8, padding: "6px 12px",
-                                    cursor: "pointer", fontSize: 12, fontWeight: 700,
-                                    display: "flex", alignItems: "center", gap: 5,
-                                    transition: "all 0.15s",
-                                }}
-                                    onMouseOver={e => { e.currentTarget.style.background = "#dc2626"; e.currentTarget.style.color = "#fff"; }}
-                                    onMouseOut={e => { e.currentTarget.style.background = "#fff5f5"; e.currentTarget.style.color = "#dc2626"; }}
-                                >
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6 M14 11v6"/></svg>
-                                    Delete
-                                </button>
+                                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                                    <button onClick={() => handleEdit(b.id, b.title)} style={{
+                                        background: "#f8fafc", border: "1px solid #cbd5e1",
+                                        color: "#475569", borderRadius: 8, padding: "6px 10px",
+                                        cursor: "pointer", fontSize: 12, fontWeight: 700,
+                                        display: "flex", alignItems: "center", gap: 5,
+                                        transition: "all 0.15s",
+                                    }}
+                                        onMouseOver={e => { e.currentTarget.style.background = "#e2e8f0"; e.currentTarget.style.color = "#334155"; }}
+                                        onMouseOut={e => { e.currentTarget.style.background = "#f8fafc"; e.currentTarget.style.color = "#475569"; }}
+                                    >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        Edit
+                                    </button>
+                                    <button onClick={() => handleDelete(b.id)} style={{
+                                        background: "#fff5f5", border: "1px solid #fecaca",
+                                        color: "#dc2626", borderRadius: 8, padding: "6px 10px",
+                                        cursor: "pointer", fontSize: 12, fontWeight: 700,
+                                        display: "flex", alignItems: "center", gap: 5,
+                                        transition: "all 0.15s",
+                                    }}
+                                        onMouseOver={e => { e.currentTarget.style.background = "#dc2626"; e.currentTarget.style.color = "#fff"; }}
+                                        onMouseOut={e => { e.currentTarget.style.background = "#fff5f5"; e.currentTarget.style.color = "#dc2626"; }}
+                                    >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6 M14 11v6"/></svg>
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
