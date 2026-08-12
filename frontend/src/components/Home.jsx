@@ -158,7 +158,7 @@ function Home() {
     const [search, setSearch] = useState({ from_city: "", to_city: "", travel_date: todayStr });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
-    const [locationsList, setLocationsList] = useState([]);
+    const [locationsData, setLocationsData] = useState({ all: [], destinationsMap: {} });
     const [showFromDropdown, setShowFromDropdown] = useState(false);
     const [showToDropdown, setShowToDropdown] = useState(false);
     const [banners, setBanners] = useState([]);
@@ -167,7 +167,11 @@ function Home() {
         const fetchLocations = async () => {
             try {
                 const res = await axios.get(`${API_URL}/locations`);
-                setLocationsList(res.data);
+                if (Array.isArray(res.data)) {
+                    setLocationsData({ all: res.data, destinationsMap: {} });
+                } else {
+                    setLocationsData(res.data);
+                }
             } catch (err) {
                 console.error("Failed to load locations:", err);
             }
@@ -242,6 +246,12 @@ function Home() {
         padding: "10px 16px", cursor: "pointer",
         fontSize: 14, color: "#0f172a", borderBottom: "1px solid #f1f5f9",
     };
+
+    const fromList = locationsData.all;
+    let toList = locationsData.all;
+    if (search.from_city && locationsData.destinationsMap[search.from_city]) {
+        toList = locationsData.destinationsMap[search.from_city];
+    }
 
     return (
         <div>
@@ -334,9 +344,9 @@ function Home() {
                                         onFocus={() => setShowFromDropdown(true)}
                                         onBlur={() => setTimeout(() => setShowFromDropdown(false), 200)}
                                         style={{ ...iStyle, borderColor: errors.from_city ? "#dc2626" : "#e2e8f0" }} />
-                                    {showFromDropdown && locationsList.filter(loc => loc.toLowerCase().includes(search.from_city.toLowerCase())).length > 0 && (
+                                    {showFromDropdown && fromList.filter(loc => loc.toLowerCase().includes(search.from_city.toLowerCase())).length > 0 && (
                                         <div style={dropdownStyle}>
-                                            {locationsList.filter(loc => loc.toLowerCase().includes(search.from_city.toLowerCase())).map(loc => (
+                                            {fromList.filter(loc => loc.toLowerCase().includes(search.from_city.toLowerCase())).map(loc => (
                                                 <div key={loc} style={dropdownItemStyle}
                                                     onMouseOver={e => e.currentTarget.style.background = "#f8fafc"}
                                                     onMouseOut={e => e.currentTarget.style.background = "transparent"}
@@ -375,9 +385,9 @@ function Home() {
                                         onFocus={() => setShowToDropdown(true)}
                                         onBlur={() => setTimeout(() => setShowToDropdown(false), 200)}
                                         style={{ ...iStyle, borderColor: errors.to_city ? "#dc2626" : "#e2e8f0" }} />
-                                    {showToDropdown && locationsList.filter(loc => loc.toLowerCase().includes(search.to_city.toLowerCase())).length > 0 && (
+                                    {showToDropdown && toList.filter(loc => loc.toLowerCase().includes(search.to_city.toLowerCase())).length > 0 && (
                                         <div style={dropdownStyle}>
-                                            {locationsList.filter(loc => loc.toLowerCase().includes(search.to_city.toLowerCase())).map(loc => (
+                                            {toList.filter(loc => loc.toLowerCase().includes(search.to_city.toLowerCase())).map(loc => (
                                                 <div key={loc} style={dropdownItemStyle}
                                                     onMouseOver={e => e.currentTarget.style.background = "#f8fafc"}
                                                     onMouseOut={e => e.currentTarget.style.background = "transparent"}

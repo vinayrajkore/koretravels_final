@@ -221,47 +221,59 @@ app.get("/bus/:id", async (req, res) => {
 app.get("/locations", async (req, res) => {
     try {
         const [buses] = await db.query("SELECT from_city, to_city, pickup_points, drop_points FROM buses WHERE status = 'active'");
-        let rawLocations = [];
         
-        buses.forEach(bus => {
-            if (bus.from_city) rawLocations.push(bus.from_city.trim());
-            if (bus.to_city) rawLocations.push(bus.to_city.trim());
-            
-            try {
-                const pickups = JSON.parse(bus.pickup_points || "[]");
-                pickups.forEach(p => p.name && rawLocations.push(p.name.trim()));
-                
-                const drops = JSON.parse(bus.drop_points || "[]");
-                drops.forEach(d => d.name && rawLocations.push(d.name.trim()));
-            } catch(e) { }
-        });
-        
-        // Convert to Title Case
         const toTitleCase = (str) => {
+            if (!str) return "";
             return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         };
 
-        rawLocations = rawLocations.map(toTitleCase);
+        let rawAll = new Set();
+        let mapping = {}; // origin -> Set of destinations
 
-        // Sort alphabetically to group prefixes together
-        rawLocations.sort();
+        const addMapping = (orig, dest) => {
+            if (!orig || !dest) return;
+            const o = toTitleCase(orig.trim());
+            const d = toTitleCase(dest.trim());
+            rawAll.add(o);
+            rawAll.add(d);
+            if (!mapping[o]) mapping[o] = new Set();
+            mapping[o].add(d);
+        };
 
-        const finalLocations = [];
-        for (let loc of rawLocations) {
-            if (finalLocations.length === 0) {
-                finalLocations.push(loc);
-            } else {
-                const last = finalLocations[finalLocations.length - 1];
-                // Group similar names: if current location starts with the last location + space/hyphen, skip it
-                if (loc === last || loc.startsWith(last + " ") || loc.startsWith(last + "-")) {
-                    continue;
-                } else {
-                    finalLocations.push(loc);
-                }
-            }
+        buses.forEach(bus => {
+            let origins = [];
+            let destinations = [];
+
+            if (bus.from_city) origins.push(bus.from_city);
+            try {
+                const pickups = JSON.parse(bus.pickup_points || "[]");
+                pickups.forEach(p => p.name && origins.push(p.name));
+            } catch(e) {}
+
+            if (bus.to_city) destinations.push(bus.to_city);
+            try {
+                const drops = JSON.parse(bus.drop_points || "[]");
+                drops.forEach(d => d.name && destinations.push(d.name));
+            } catch(e) {}
+
+            origins.forEach(o => {
+                destinations.forEach(d => {
+                    addMapping(o, d);
+                });
+            });
+        });
+
+        const allLocations = Array.from(rawAll).sort();
+        const destinationsMap = {};
+        for (let o in mapping) {
+            destinationsMap[o] = Array.from(mapping[o]).sort();
         }
+
+        res.json({
+            all: allLocations,
+            destinationsMap: destinationsMap
+        });
         
-        res.json(finalLocations);
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
