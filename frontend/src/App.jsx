@@ -112,13 +112,7 @@ function Layout() {
                     }} />
 
                     {/* Main footer content */}
-                    <div style={{
-                        maxWidth: 960, margin: "0 auto",
-                        padding: "48px 24px 32px",
-                        display: "grid",
-                        gridTemplateColumns: "2fr 1fr 1fr",
-                        gap: 40,
-                    }}>
+                    <div className="footer-grid">
                         {/* Brand column */}
                         <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
