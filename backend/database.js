@@ -1003,3 +1003,116 @@ app.get("/user-stats/:user_id", async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+// ════════════════════════════════════════════════════════════
+//  SETTINGS (admin-managed key-value store)
+// ════════════════════════════════════════════════════════════
+
+// Ensure settings table exists
+(async () => {
+    try {
+        await db.query(`CREATE TABLE IF NOT EXISTS settings (
+            \`key\` VARCHAR(100) PRIMARY KEY,
+            \`value\` TEXT
+        )`);
+    } catch(e) { console.error("Settings table error:", e.message); }
+})();
+
+// GET /admin/settings
+app.get("/admin/settings", async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT `key`, `value` FROM settings");
+        const settings = {};
+        rows.forEach(r => { settings[r.key] = r.value; });
+        res.json(settings);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// PUT /admin/settings — upsert key-value
+app.put("/admin/settings", async (req, res) => {
+    try {
+        const { key, value } = req.body;
+        if (!key) return res.status(400).json({ message: "key required" });
+        await db.query("INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=?", [key, value, value]);
+        res.json({ message: "Setting saved" });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ════════════════════════════════════════════════════════════
+//  KOREBOT — Chat API
+// ════════════════════════════════════════════════════════════
+
+// POST /chat/search — search buses for chatbot
+app.post("/chat/search", async (req, res) => {
+    try {
+        const { from_city, to_city, travel_date } = req.body;
+        if (!from_city || !to_city || !travel_date)
+            return res.status(400).json({ message: "from_city, to_city and travel_date required" });
+
+        const sql = `SELECT id, bus_name, bus_number, from_city, to_city, depart AS departure_time,
+                     arrive AS arrival_time, duration, travel_date, price,
+                     seats_left AS available_seats, type AS bus_type, amenities, rating
+                     FROM buses
+                     WHERE (from_city LIKE ? OR pickup_points LIKE ?)
+                     AND (to_city LIKE ? OR drop_points LIKE ?)
+                     AND travel_date = ? AND seats_left > 0 AND status = 'active'
+                     ORDER BY depart ASC`;
+        const sf = `%${from_city}%`, st = `%${to_city}%`;
+        const [buses] = await db.query(sql, [sf, sf, st, st, travel_date]);
+        res.json({ buses });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// POST /chat/ai — proxy to OpenRouter
+const https = require("https");
+app.post("/chat/ai", async (req, res) => {
+    try {
+        const { messages } = req.body;
+
+        // Get the API key from settings table
+        const [[settingRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_api_key'").catch(() => [[null]]);
+        const apiKey = settingRow?.value;
+        if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
+
+        const body = JSON.stringify({
+            model: "mistralai/mistral-7b-instruct:free",
+            messages: [
+                {
+                    role: "system",
+                    content: `You are KoreBot, a helpful AI assistant for Kore Travels — India's trusted bus booking platform based in Maharashtra. You help customers with: bus routes, travel tips, fare information, safety advice, journey planning, and anything travel/bus related. Be friendly, concise and professional. If asked about specific bookings or bus availability say to use the Search feature. Always respond in the same language the user writes in.`
+                },
+                ...messages
+            ],
+            max_tokens: 512
+        });
+
+        const options = {
+            hostname: "openrouter.ai",
+            path: "/api/v1/chat/completions",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+                "HTTP-Referer": "https://koretravels-final.pages.dev",
+                "X-Title": "Kore Travels KoreBot"
+            }
+        };
+
+        const proxyReq = https.request(options, (proxyRes) => {
+            let data = "";
+            proxyRes.on("data", chunk => data += chunk);
+            proxyRes.on("end", () => {
+                try {
+                    const json = JSON.parse(data);
+                    if (json.error) return res.status(500).json({ message: json.error.message || "AI error" });
+                    const reply = json.choices?.[0]?.message?.content || "Sorry, I couldn't get a response.";
+                    res.json({ reply });
+                } catch(e) { res.status(500).json({ message: "Failed to parse AI response" }); }
+            });
+        });
+        proxyReq.on("error", e => res.status(500).json({ message: e.message }));
+        proxyReq.write(body);
+        proxyReq.end();
+
+    } catch (err) { res.status(500).json({ message: err.message }); }
+});

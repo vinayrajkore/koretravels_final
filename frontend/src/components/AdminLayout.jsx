@@ -26,6 +26,7 @@ function AdminLayout({ children }) {
         { path: "/admin/seats",     label: "Seat Manager", svgPath: "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z M7 7h.01" },
         { path: "/admin/users",     label: "Users",        svgPath: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" },
         { path: "/admin/banners",   label: "Banners",      svgPath: "M3 3h18v18H3z M3 9h18 M9 21V9" },
+        { path: "/admin/settings",  label: "Bot & AI",     svgPath: "M12 2c1.1 0 2 .9 2 2v4h-4V4c0-1.1.9-2 2-2z M3 11h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V11z M9 16a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M15 16a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" },
     ];
 
 
