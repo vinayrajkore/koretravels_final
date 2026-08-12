@@ -627,8 +627,9 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
         try {
             const photosArray = JSON.parse(b.photos || "[]");
             if (photosArray.length > 0) {
-                const limitedPhotos = photosArray.slice(0, 3);
+                const limitedPhotos = photosArray.filter(p => p && p.startsWith('http')).slice(0, 3);
                 
+                if (limitedPhotos.length > 0) {
                 imagesHtml = `
                 <div style="margin-top:25px;text-align:center;">
                     <p style="color:#64748b;font-size:14px;font-weight:700;text-transform:uppercase;margin-bottom:15px;letter-spacing:1px;">Your Bus Interior</p>
@@ -641,6 +642,7 @@ app.put("/admin/confirmbooking/:id", async (req, res) => {
                         </tr>
                     </table>
                 </div>`;
+                }
             }
         } catch(e) {}
 
