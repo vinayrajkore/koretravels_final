@@ -2,6 +2,7 @@ import API_URL from "../api";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
+import { useToast } from "./Toast";
 
 // SVG Icons
 const IcCheck   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
@@ -14,12 +15,14 @@ const IcTicket  = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="no
 const IcCancel  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>;
 
 function AdminBookings() {
+    const toast = useToast();
     const [bookings, setBookings]   = useState([]);
     const [filtered, setFiltered]   = useState([]);
     const [loading, setLoading]     = useState(true);
     const [filter, setFilter]       = useState("all");
     const [denyModal, setDenyModal] = useState({ open: false, id: null });
     const [denyReason, setDenyReason] = useState("");
+    const [confirmAction, setConfirmAction] = useState({ open: false, type: null, id: null });
 
     useEffect(() => { loadBookings(); }, []);
     useEffect(() => {
@@ -32,36 +35,44 @@ function AdminBookings() {
             const res = await axios.get(`${API_URL}/admin/allbookings`);
             setBookings(res.data);
             setFiltered(res.data);
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not load bookings.", "Load Error"); }
         finally { setLoading(false); }
     };
 
-    const confirmBooking = async (id) => {
-        if (!window.confirm("Confirm this booking? A confirmation email will be sent.")) return;
+    const confirmBooking = (id) => {
+        setConfirmAction({ open: true, type: "confirm", id });
+    };
+    const doConfirmBooking = async () => {
+        const id = confirmAction.id;
+        setConfirmAction({ open: false, type: null, id: null });
         try {
             const res = await axios.put(`${API_URL}/admin/confirmbooking/${id}`);
-            alert(res.data.message);
+            toast.success(res.data.message || "Booking confirmed!", "Confirmed");
             loadBookings();
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not confirm booking.", "Error"); }
     };
 
     const denyBooking = async () => {
         try {
             const res = await axios.put(`${API_URL}/admin/denybooking/${denyModal.id}`, { reason: denyReason });
-            alert(res.data.message);
+            toast.warning(res.data.message || "Booking denied.", "Denied");
             setDenyModal({ open: false, id: null });
             setDenyReason("");
             loadBookings();
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not deny booking.", "Error"); }
     };
 
-    const cancelBooking = async (id) => {
-        if (!window.confirm("Cancel this booking? Seats will be released.")) return;
+    const cancelBooking = (id) => {
+        setConfirmAction({ open: true, type: "cancel", id });
+    };
+    const doCancelBooking = async () => {
+        const id = confirmAction.id;
+        setConfirmAction({ open: false, type: null, id: null });
         try {
             const res = await axios.put(`${API_URL}/cancelbooking/${id}`);
-            alert(res.data.message);
+            toast.info(res.data.message || "Booking cancelled.", "Cancelled");
             loadBookings();
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not cancel booking.", "Error"); }
     };
 
     const statusColor = (s) => s === "confirmed" ? "#1a7a6e" : s === "pending" ? "#ff8c00" : "#e53935";

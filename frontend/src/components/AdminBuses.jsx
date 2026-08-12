@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
+import { useToast } from "./Toast";
 
 // SVG Icons
 const IcBus    = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
@@ -16,8 +17,10 @@ const IcStar   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="cur
 
 function AdminBuses() {
     const navigate = useNavigate();
+    const toast = useToast();
     const [buses, setBuses]     = useState([]);
     const [loading, setLoading] = useState(true);
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null, name: "" });
 
     useEffect(() => { loadBuses(); }, []);
 
@@ -25,17 +28,22 @@ function AdminBuses() {
         try {
             const res = await axios.get(`${API_URL}/buses`);
             setBuses(res.data);
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not load buses.", "Load Error"); }
         finally { setLoading(false); }
     };
 
-    const deleteBus = async (id, name) => {
-        if (!window.confirm(`Delete bus "${name}"? This cannot be undone.`)) return;
+    const deleteBus = (id, name) => {
+        setConfirmDelete({ open: true, id, name });
+    };
+
+    const doDelete = async () => {
+        const { id } = confirmDelete;
+        setConfirmDelete({ open: false, id: null, name: "" });
         try {
             const res = await axios.delete(`${API_URL}/deletebus/${id}`);
-            alert(res.data.message);
+            toast.success(res.data.message || "Bus deleted.", "Deleted");
             loadBuses();
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { toast.error("Could not delete bus.", "Delete Error"); }
     };
 
     const typeBadge = (t) => ({
@@ -49,6 +57,19 @@ function AdminBuses() {
         : { bg: "#ffebee", color: "#c62828", label: "Inactive" };
 
     return (
+        <>
+        {confirmDelete.open && (
+            <div style={{ position:"fixed",inset:0,zIndex:9999,background:"rgba(3,26,23,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                <div style={{ background:"linear-gradient(135deg,#062f29,#0a4a3f)",border:"1px solid rgba(200,255,0,0.2)",borderRadius:18,padding:"28px 30px",minWidth:320,maxWidth:460,boxShadow:"0 24px 60px rgba(0,0,0,0.5)",color:"#fff",fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                    <h3 style={{ margin:"0 0 8px",color:"#f87171",fontSize:17 }}>Delete Bus?</h3>
+                    <p style={{ margin:"0 0 22px",color:"rgba(255,255,255,0.6)",fontSize:13,lineHeight:1.6 }}>Delete <strong style={{color:"#fff"}}>'{confirmDelete.name}'</strong>? This action cannot be undone.</p>
+                    <div style={{ display:"flex",gap:10,justifyContent:"flex-end" }}>
+                        <button onClick={() => setConfirmDelete({ open:false,id:null,name:"" })} style={{ padding:"9px 20px",borderRadius:9,border:"1px solid rgba(255,255,255,0.15)",background:"transparent",color:"rgba(255,255,255,0.6)",cursor:"pointer",fontSize:13,fontWeight:600 }}>Cancel</button>
+                        <button onClick={doDelete} style={{ padding:"9px 22px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#ef4444,#b91c1c)",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:800 }}>Yes, Delete</button>
+                    </div>
+                </div>
+            </div>
+        )}
         <AdminLayout>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ color: "#0d3d35", fontSize: "20px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -166,6 +187,7 @@ function AdminBuses() {
                 </div>
             )}
         </AdminLayout>
+        </>
     );
 }
 

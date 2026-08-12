@@ -2,14 +2,20 @@ import API_URL from "../api";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
+import { useToast } from "./Toast";
+import LoadingOverlay from "./LoadingOverlay";
 
 function AdminBanners() {
+    const toast = useToast();
     const [banners, setBanners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [title, setTitle] = useState("");
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
+    const [editModal, setEditModal] = useState({ open: false, id: null, currentTitle: "" });
+    const [editTitle, setEditTitle] = useState("");
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
     useEffect(() => { loadBanners(); }, []);
 
@@ -18,7 +24,7 @@ function AdminBanners() {
         try {
             const res = await axios.get(`${API_URL}/banners`);
             setBanners(res.data);
-        } catch (err) { alert("Error loading banners: " + err.message); }
+        } catch (err) { toast.error("Could not load banners.", "Load Error"); }
         finally { setLoading(false); }
     };
 
@@ -30,38 +36,124 @@ function AdminBanners() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!file) { alert("Please select an image!"); return; }
+        if (!file) { toast.warning("Please select an image first!", "No File Selected"); return; }
         setUploading(true);
         try {
             const fd = new FormData();
             fd.append("banner_image", file);
             fd.append("title", title);
             await axios.post(`${API_URL}/admin/banners`, fd);
+            toast.success("Banner uploaded successfully!", "Upload Complete");
             setTitle(""); setFile(null); setPreview(null);
             document.getElementById("banner-file-input").value = "";
             await loadBanners();
-        } catch (err) { alert("Upload failed: " + err.message); }
+        } catch (err) { toast.error("Upload failed. Try again.", "Upload Error"); }
         finally { setUploading(false); }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this banner?")) return;
-        try {
-            await axios.delete(`${API_URL}/admin/banners/${id}`);
-            await loadBanners();
-        } catch (err) { alert("Delete failed: " + err.message); }
+        setConfirmDelete({ open: true, id });
     };
 
-    const handleEdit = async (id, currentTitle) => {
-        const newTitle = window.prompt("Enter new caption/title:", currentTitle || "");
-        if (newTitle === null) return; // User cancelled
+    const doDelete = async () => {
+        const id = confirmDelete.id;
+        setConfirmDelete({ open: false, id: null });
         try {
-            await axios.put(`${API_URL}/admin/banners/${id}`, { title: newTitle });
+            await axios.delete(`${API_URL}/admin/banners/${id}`);
+            toast.success("Banner deleted.", "Deleted");
             await loadBanners();
-        } catch (err) { alert("Edit failed: " + err.message); }
+        } catch (err) { toast.error("Delete failed. Try again.", "Delete Error"); }
+    };
+
+    const handleEdit = (id, currentTitle) => {
+        setEditModal({ open: true, id, currentTitle: currentTitle || "" });
+        setEditTitle(currentTitle || "");
+    };
+
+    const doEdit = async () => {
+        try {
+            await axios.put(`${API_URL}/admin/banners/${editModal.id}`, { title: editTitle });
+            toast.success("Caption updated!", "Banner Updated");
+            setEditModal({ open: false, id: null, currentTitle: "" });
+            await loadBanners();
+        } catch (err) { toast.error("Edit failed. Try again.", "Edit Error"); }
+    };
+
+    // ── Inline modal styles ───────────────────────────────────
+    const overlayMd = {
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(3,26,23,0.75)", backdropFilter: "blur(8px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+    };
+    const cardMd = {
+        background: "linear-gradient(135deg,#062f29,#0a4a3f)",
+        border: "1px solid rgba(200,255,0,0.2)",
+        borderRadius: 18, padding: "28px 30px",
+        minWidth: 320, maxWidth: 460,
+        boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+        color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif",
     };
 
     return (
+        <>
+        <LoadingOverlay show={uploading} text="Uploading banner..." />
+
+        {/* ── Edit Caption Modal ── */}
+        {editModal.open && (
+            <div style={overlayMd}>
+                <div style={cardMd}>
+                    <h3 style={{ margin: "0 0 6px", color: "#c8ff00", fontSize: 17 }}>Edit Caption</h3>
+                    <p style={{ margin: "0 0 18px", color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Update the banner title/caption below.</p>
+                    <input
+                        value={editTitle}
+                        onChange={e => setEditTitle(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && doEdit()}
+                        placeholder="Enter caption..."
+                        autoFocus
+                        style={{
+                            width: "100%", padding: "11px 14px", borderRadius: 10,
+                            border: "1.5px solid rgba(200,255,0,0.3)",
+                            background: "rgba(255,255,255,0.06)", color: "#fff",
+                            fontSize: 14, outline: "none", boxSizing: "border-box",
+                            fontFamily: "inherit", marginBottom: 20,
+                        }}
+                    />
+                    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                        <button onClick={() => setEditModal({ open: false, id: null, currentTitle: "" })} style={{
+                            padding: "9px 20px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.15)",
+                            background: "transparent", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 13, fontWeight: 600,
+                        }}>Cancel</button>
+                        <button onClick={doEdit} style={{
+                            padding: "9px 22px", borderRadius: 9, border: "none",
+                            background: "linear-gradient(135deg,#c8ff00,#a8d900)", color: "#062f29",
+                            cursor: "pointer", fontSize: 13, fontWeight: 800,
+                        }}>Save Caption</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* ── Confirm Delete Modal ── */}
+        {confirmDelete.open && (
+            <div style={overlayMd}>
+                <div style={cardMd}>
+                    <h3 style={{ margin: "0 0 8px", color: "#f87171", fontSize: 17 }}>Delete Banner?</h3>
+                    <p style={{ margin: "0 0 22px", color: "rgba(255,255,255,0.6)", fontSize: 13, lineHeight: 1.6 }}>This action cannot be undone. The banner image will be permanently removed.</p>
+                    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                        <button onClick={() => setConfirmDelete({ open: false, id: null })} style={{
+                            padding: "9px 20px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.15)",
+                            background: "transparent", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 13, fontWeight: 600,
+                        }}>Cancel</button>
+                        <button onClick={doDelete} style={{
+                            padding: "9px 22px", borderRadius: 9, border: "none",
+                            background: "linear-gradient(135deg,#ef4444,#b91c1c)", color: "#fff",
+                            cursor: "pointer", fontSize: 13, fontWeight: 800,
+                        }}>Yes, Delete</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
         <AdminLayout>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
                 <h2 style={{ color: "#0d3d35", fontSize: 20, display: "flex", alignItems: "center", gap: 8 }}>
@@ -213,6 +305,7 @@ function AdminBanners() {
                 </div>
             )}
         </AdminLayout>
+        </>
     );
 }
 
