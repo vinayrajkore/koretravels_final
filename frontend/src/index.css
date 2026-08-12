@@ -1052,11 +1052,10 @@ textarea::placeholder {
 
 .stats-grid {
   padding: 22px 32px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: clamp(28px, 6vw, 100px);
+  flex-wrap: wrap;
 }
 
 /* ================================================================
@@ -1501,6 +1500,7 @@ textarea::placeholder {
   }
 
   .stats-grid {
+    display: grid !important;
     grid-template-columns: 1fr 1fr;
     gap: 24px 12px;
     padding: 24px 16px;
