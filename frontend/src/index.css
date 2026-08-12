@@ -288,6 +288,10 @@ button {
   animation: shimmer 3s linear infinite;
 }
 
+.mobile-title {
+  display: none;
+}
+
 .kt-navbar nav {
   display: flex;
   align-items: center;
@@ -1294,7 +1298,19 @@ textarea::placeholder {
 
   .kt-navbar .site-name {
     display: none;
-    /* Hide the text, just show the logo on mobile to save space */
+  }
+
+  .desktop-subtitle {
+    display: none !important;
+  }
+
+  .mobile-title {
+    display: block !important;
+    color: var(--accent);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    text-shadow: 0 0 10px rgba(200,255,0,0.3);
   }
 
   .kt-navbar nav {

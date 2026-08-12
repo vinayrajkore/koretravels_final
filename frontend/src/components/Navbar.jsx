@@ -48,7 +48,8 @@ function Navbar() {
                 <img src="/logo.png" alt="Kore Travels Logo" />
                 <div style={{ display: "flex", flexDirection: "column" }}>
                     <span className="site-name">Kore Travels</span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", fontWeight: 500, letterSpacing: "0.8px", marginTop: -1 }}>BOOKING PLATFORM</span>
+                    <span className="desktop-subtitle" style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", fontWeight: 500, letterSpacing: "0.8px", marginTop: -1 }}>BOOKING PLATFORM</span>
+                    <span className="mobile-title">Kore Travels Booking</span>
                 </div>
             </Link>
 
