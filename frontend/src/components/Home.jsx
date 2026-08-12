@@ -321,11 +321,9 @@ function Home() {
                         </div>
 
                         <form onSubmit={searchHandler}>
-                            {/* Row 1: From & To */}
-                            <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "nowrap", marginBottom: 20 }}>
-
+                            <div className="home-search-grid">
                                 {/* From */}
-                                <div style={{ flex: "1 1 0", minWidth: 0, position: "relative" }}>
+                                <div className="search-field-col">
                                     <label style={lStyle}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                                         From
@@ -352,7 +350,7 @@ function Home() {
                                 </div>
 
                                 {/* Swap */}
-                                <div style={{ paddingTop: 24, flexShrink: 0 }}>
+                                <div className="search-swap-col">
                                     <button type="button" onClick={swapCities} title="Swap cities"
                                         style={{
                                             width: 44, height: 44, borderRadius: "50%",
@@ -366,7 +364,7 @@ function Home() {
                                 </div>
 
                                 {/* To */}
-                                <div style={{ flex: "1 1 0", minWidth: 0, position: "relative" }}>
+                                <div className="search-field-col">
                                     <label style={lStyle}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#fff"/></svg>
                                         To
@@ -391,12 +389,8 @@ function Home() {
                                     )}
                                     <span style={errStyle}>{errors.to_city}</span>
                                 </div>
-                            </div>
-
-                            {/* Row 2: Date */}
-                            <div style={{ marginBottom: 20 }}>
                                 {/* Date */}
-                                <div style={{ width: "100%", position: "relative" }}>
+                                <div className="search-date-col">
                                     <label style={lStyle}>{Icon.calendar} Travel Date</label>
                                     <input id="travel_date" type="date" name="travel_date"
                                         value={search.travel_date} onChange={changeHandler}
@@ -476,10 +470,9 @@ function Home() {
                     <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, lineHeight: 1.7, marginBottom: 32, maxWidth: 480, margin: "0 auto 32px" }}>
                         Create a free account today and unlock your exclusive welcome discount on your first bus booking with Kore Travels.
                     </p>
-                    <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "nowrap" }}>
-                        <a href="/register" style={{
-                            background: "#c8ff00", color: "#062f29", fontWeight: 800, fontSize: 14,
-                            padding: "14px 20px", borderRadius: 14, textDecoration: "none",
+                    <div className="cta-buttons">
+                        <a href="/register" className="cta-btn-primary" style={{
+                            textDecoration: "none",
                             boxShadow: "0 8px 28px rgba(200,255,0,0.35)", transition: "transform 0.2s",
                             display: "inline-flex", alignItems: "center", gap: 8,
                         }}
@@ -488,9 +481,7 @@ function Home() {
                         >
                             Register Free {Icon.arrow}
                         </a>
-                        <a href="/about" style={{
-                            background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)",
-                            fontWeight: 700, fontSize: 14, padding: "14px 20px", borderRadius: 14,
+                        <a href="/about" className="cta-btn-secondary" style={{
                             textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.15)",
                             transition: "all 0.2s", display: "inline-flex", alignItems: "center", gap: 8,
                         }}
