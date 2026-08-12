@@ -98,10 +98,10 @@ function BusList() {
                                 </div>
 
                                 {/* Price + Book Button */}
-                                <div className="bus-action-section" style={{ textAlign: "right", width: "100%" }}>
-                                    <div>
+                                <div className="bus-action-section">
+                                    <div className="price-container">
                                         <div className="price-big">₹{bus.price}</div>
-                                        <div className="seats-left" style={{ marginBottom: "10px" }}>per seat</div>
+                                        <div className="seats-left" style={{ marginBottom: "4px" }}>per seat</div>
                                     </div>
                                     <button
                                         className="btn-kt-accent"

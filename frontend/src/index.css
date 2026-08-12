@@ -791,6 +791,13 @@ textarea::placeholder {
   gap: 16px;
 }
 
+.bus-action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
 .route-info {
   display: flex;
   align-items: center;
@@ -1106,6 +1113,25 @@ textarea::placeholder {
     flex-direction: column;
     align-items: stretch;
     gap: 16px !important;
+  }
+
+  .bus-action-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    border-top: 1px dashed rgba(0,0,0,0.1);
+    padding-top: 16px;
+  }
+  .bus-action-section .price-container {
+    text-align: left;
+  }
+  .bus-action-section .btn-kt-accent {
+    width: auto;
+    padding: 10px 16px;
+    font-size: 14px;
   }
 
   /* kt-navbar styles removed from here, managed in lower media query */
