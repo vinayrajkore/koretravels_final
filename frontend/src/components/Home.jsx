@@ -476,10 +476,10 @@ function Home() {
                     <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, lineHeight: 1.7, marginBottom: 32, maxWidth: 480, margin: "0 auto 32px" }}>
                         Create a free account today and unlock your exclusive welcome discount on your first bus booking with Kore Travels.
                     </p>
-                    <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "nowrap" }}>
                         <a href="/register" style={{
-                            background: "#c8ff00", color: "#062f29", fontWeight: 800, fontSize: 15,
-                            padding: "14px 32px", borderRadius: 14, textDecoration: "none",
+                            background: "#c8ff00", color: "#062f29", fontWeight: 800, fontSize: 14,
+                            padding: "14px 20px", borderRadius: 14, textDecoration: "none",
                             boxShadow: "0 8px 28px rgba(200,255,0,0.35)", transition: "transform 0.2s",
                             display: "inline-flex", alignItems: "center", gap: 8,
                         }}
@@ -490,7 +490,7 @@ function Home() {
                         </a>
                         <a href="/about" style={{
                             background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)",
-                            fontWeight: 700, fontSize: 15, padding: "14px 32px", borderRadius: 14,
+                            fontWeight: 700, fontSize: 14, padding: "14px 20px", borderRadius: 14,
                             textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.15)",
                             transition: "all 0.2s", display: "inline-flex", alignItems: "center", gap: 8,
                         }}
