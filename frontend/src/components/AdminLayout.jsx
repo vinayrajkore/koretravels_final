@@ -2,10 +2,12 @@
 // CSS sidebar navigation like navdemo.html from internship
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 function AdminLayout({ children }) {
     const navigate  = useNavigate();
     const location  = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const adminName = localStorage.getItem("u_name") || "Admin";
 
@@ -28,16 +30,18 @@ function AdminLayout({ children }) {
 
 
     return (
-        <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Poppins', sans-serif" }}>
+        <div className="kt-admin-layout" style={{ minHeight: "100vh", fontFamily: "'Poppins', sans-serif" }}>
+
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    className="admin-sidebar-overlay"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
 
             {/* ── Sidebar ─────────────────────────────────── */}
-            <div style={{
-                width: "240px", minHeight: "100vh",
-                background: "linear-gradient(180deg, #0d3d35 0%, #1a7a6e 100%)",
-                display: "flex", flexDirection: "column",
-                position: "fixed", top: 0, left: 0, zIndex: 100,
-                boxShadow: "4px 0 20px rgba(0,0,0,0.2)"
-            }}>
+            <div className={`kt-admin-sidebar ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}>
                 {/* Logo */}
                 <div style={{ padding: "20px 16px 15px", borderBottom: "1px solid rgba(200,255,0,0.2)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
@@ -105,19 +109,30 @@ function AdminLayout({ children }) {
             </div>
 
             {/* ── Main Content ─────────────────────────────── */}
-            <div style={{ marginLeft: "240px", flex: 1, background: "#f0f4f3", minHeight: "100vh" }}>
+            <div className="kt-admin-content">
 
                 {/* Top bar */}
                 <div style={{
-                    background: "#fff", padding: "14px 28px",
+                    background: "#fff", padding: "14px 24px",
                     borderBottom: "2px solid #e0eeec",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    gap: 12
                 }}>
-                    <h2 style={{ color: "#0d3d35", fontSize: "18px", fontWeight: "700", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d3d35" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Kore Travels — Admin Panel
-                    </h2>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        {/* Mobile Hamburger Button */}
+                        <button 
+                            className="admin-hamburger"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        </button>
+                        
+                        <h2 className="admin-top-title" style={{ color: "#0d3d35", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d3d35" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Kore Travels <span className="hide-on-mobile">— Admin</span>
+                        </h2>
+                    </div>
                     <span style={{
                         background: "#c8ff00", color: "#0d3d35", fontWeight: "700",
                         padding: "4px 14px", borderRadius: "20px", fontSize: "12px"
