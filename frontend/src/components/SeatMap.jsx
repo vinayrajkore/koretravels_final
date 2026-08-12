@@ -612,7 +612,7 @@ function SeatMap() {
                 <div className="seatmap-container" style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
 
                     {/* ── Left Column (Seat Map + Points) ─────────────────── */}
-                    <div className="seatmap-left-col" style={{ flex: "1", minWidth: "min(100%, 340px)" }}>
+                    <div className="seatmap-left-col" style={{ flex: "1", minWidth: "min(100%, 260px)" }}>
 
                         {/* ── Seat Map Panel ─────────────────────────────────── */}
                         <div className="kt-card">

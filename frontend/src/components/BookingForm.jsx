@@ -134,7 +134,7 @@ function BookingForm() {
                 <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "flex-start" }}>
 
                     {/* Booking Form */}
-                    <div className="kt-card" style={{ flex: "1", minWidth: "300px" }}>
+                    <div className="kt-card" style={{ flex: "1", minWidth: "260px" }}>
                         <div className="kt-card-body">
 
                             <form onSubmit={submitHandler}>

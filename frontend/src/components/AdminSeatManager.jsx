@@ -1214,7 +1214,7 @@ function AdminSeatManager() {
             <div style={{ background: "#fff", borderRadius: "12px", padding: "18px 20px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", marginBottom: "20px" }}>
                 <label style={{ fontWeight: "700", color: "#1a7a6e", marginBottom: "8px", display: "block" }}>Select Bus:</label>
                 <select value={currentBusId} onChange={e => setCurrentBusId(e.target.value)}
-                    style={{ padding: "10px 14px", border: "2px solid #d0e8e4", borderRadius: "8px", fontSize: "14px", background: "#fff", color: "#222", minWidth: "300px" }}>
+                    style={{ padding: "10px 14px", border: "2px solid #d0e8e4", borderRadius: "8px", fontSize: "14px", background: "#fff", color: "#222", width: "100%" }}>
                     <option value="">-- Choose a Bus --</option>
                     {buses.map(b => (
                         <option key={b.id} value={b.id}>{b.bus_name} ({b.bus_number}) | {b.from_city} → {b.to_city} | {b.travel_date}</option>
@@ -1235,7 +1235,7 @@ function AdminSeatManager() {
                 <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
 
                     {/* Seat Grid */}
-                    <div style={{ background: "#fff", borderRadius: "12px", padding: "24px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", flex: "1", minWidth: "320px" }}>
+                    <div style={{ background: "#fff", borderRadius: "12px", padding: "24px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", flex: "1", minWidth: "260px" }}>
 
                         {/* Legend */}
                         <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
