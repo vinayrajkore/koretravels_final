@@ -7,14 +7,28 @@ import API_URL from "../api";
 function AdminSettings() {
     const [key, setKey]         = useState("");
     const [saved, setSaved]     = useState("");
+    const [model, setModel]     = useState("meta-llama/llama-3.1-8b-instruct:free");
+    const [savedModel, setSavedModel] = useState("");
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [show, setShow]       = useState(false);
     const [msg, setMsg]         = useState(null);
 
+    const availableModels = [
+        { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B Instruct (Free/Reliable)" },
+        { value: "google/gemini-2.5-flash-free", label: "Google Gemini 2.5 Flash (Free)" },
+        { value: "google/gemini-2.0-pro-exp-02-05:free", label: "Google Gemini 2.0 Pro Exp (Free)" },
+        { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B Instruct (Free/Often Offline)" },
+        { value: "openai/gpt-4o-mini", label: "GPT-4o Mini (Paid)" },
+        { value: "openai/gpt-3.5-turbo", label: "GPT-3.5 Turbo (Paid)" }
+    ];
+
     useEffect(() => {
         axios.get(`${API_URL}/admin/settings`)
-            .then(r => { if (r.data?.openrouter_api_key) { setSaved(r.data.openrouter_api_key); setKey(r.data.openrouter_api_key); } })
+            .then(r => { 
+                if (r.data?.openrouter_api_key) { setSaved(r.data.openrouter_api_key); setKey(r.data.openrouter_api_key); } 
+                if (r.data?.openrouter_model) { setSavedModel(r.data.openrouter_model); setModel(r.data.openrouter_model); }
+            })
             .catch(() => {})
             .finally(() => setFetching(false));
     }, []);
@@ -24,8 +38,10 @@ function AdminSettings() {
         setLoading(true); setMsg(null);
         try {
             await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_api_key", value: key.trim() });
+            await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_model", value: model });
             setSaved(key.trim());
-            setMsg({ type: "success", text: "✅ OpenRouter API key saved! KoreBot AI mode is now active." });
+            setSavedModel(model);
+            setMsg({ type: "success", text: "✅ OpenRouter AI settings saved! KoreBot AI mode is now updated." });
         } catch(e) {
             setMsg({ type: "error", text: "❌ Failed to save: " + (e?.response?.data?.message || e.message) });
         } finally { setLoading(false); }
@@ -53,7 +69,7 @@ function AdminSettings() {
                         ⚙️ Bot & AI Settings
                     </h1>
                     <p style={{ color: "#64748b", fontSize: 13, marginTop: 6 }}>
-                        Configure KoreBot's AI mode using an OpenRouter API key.
+                        Configure KoreBot's AI mode using an OpenRouter API key and model selection.
                     </p>
                 </div>
 
@@ -67,7 +83,7 @@ function AdminSettings() {
                         </div>
                         <div>
                             <div style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>KoreBot AI Mode</div>
-                            <div style={{ color: "rgba(200,255,0,0.7)", fontSize: 12 }}>Powered by OpenRouter • Free OSS models (Mistral 7B)</div>
+                            <div style={{ color: "rgba(200,255,0,0.7)", fontSize: 12 }}>Powered by OpenRouter</div>
                         </div>
                         <div style={{ marginLeft: "auto" }}>
                             <span style={{
@@ -91,7 +107,7 @@ function AdminSettings() {
                                 <li>Go to <a href="https://openrouter.ai" target="_blank" rel="noreferrer" style={{ color: "#0d7a6e", fontWeight: 700 }}>openrouter.ai</a> and sign up (free)</li>
                                 <li>Click your profile → <strong>API Keys</strong> → Create a new key</li>
                                 <li>Copy and paste the key below</li>
-                                <li>The bot will use <strong>Mistral 7B Instruct (free)</strong> model</li>
+                                <li>Select a reliable free model like <strong>Llama 3.1</strong> or <strong>Gemini</strong>.</li>
                             </ol>
                         </div>
 
@@ -99,7 +115,7 @@ function AdminSettings() {
                         <label style={{ display: "block", fontWeight: 700, fontSize: 12, color: "#374151", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                             OpenRouter API Key
                         </label>
-                        <div style={{ position: "relative" }}>
+                        <div style={{ position: "relative", marginBottom: 16 }}>
                             <input
                                 type={show ? "text" : "password"}
                                 value={key}
@@ -121,29 +137,52 @@ function AdminSettings() {
                             }}>{show ? "Hide" : "Show"}</button>
                         </div>
 
+                        {/* Model input */}
+                        <label style={{ display: "block", fontWeight: 700, fontSize: 12, color: "#374151", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                            AI Model
+                        </label>
+                        <div style={{ marginBottom: 16 }}>
+                            <select
+                                value={model}
+                                onChange={e => setModel(e.target.value)}
+                                style={{
+                                    width: "100%", boxSizing: "border-box",
+                                    padding: "11px 14px",
+                                    border: "1.5px solid #e2e8f0", borderRadius: 10,
+                                    fontSize: 13,
+                                    outline: "none", color: "#0f172a",
+                                    background: "#f8fafc", cursor: "pointer"
+                                }}
+                            >
+                                {availableModels.map(m => (
+                                    <option key={m.value} value={m.value}>{m.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
                         {/* Buttons */}
                         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                             <button
                                 onClick={handleSave}
-                                disabled={loading || !key.trim() || key === saved}
+                                disabled={loading || !key.trim() || (key === saved && model === savedModel)}
                                 style={{
                                     flex: 1, padding: "11px", borderRadius: 10, border: "none",
-                                    background: (!loading && key.trim() && key !== saved)
+                                    background: (!loading && key.trim() && (key !== saved || model !== savedModel))
                                         ? "linear-gradient(135deg, #0d3d35, #1a7a6e)"
                                         : "#e2e8f0",
-                                    color: (!loading && key.trim() && key !== saved) ? "#c8ff00" : "#94a3b8",
-                                    fontWeight: 800, fontSize: 13, cursor: (!loading && key.trim() && key !== saved) ? "pointer" : "not-allowed",
+                                    color: (!loading && key.trim() && (key !== saved || model !== savedModel)) ? "#c8ff00" : "#94a3b8",
+                                    fontWeight: 800, fontSize: 13, cursor: (!loading && key.trim() && (key !== saved || model !== savedModel)) ? "pointer" : "not-allowed",
                                     transition: "all 0.2s",
                                 }}
                             >
-                                {loading ? "Saving..." : key === saved && saved ? "✓ Saved" : "Save API Key"}
+                                {loading ? "Saving..." : (key === saved && model === savedModel && saved) ? "✓ Saved" : "Save Settings"}
                             </button>
                             {saved && (
                                 <button onClick={handleClear} disabled={loading} style={{
                                     padding: "11px 18px", borderRadius: 10,
                                     border: "1.5px solid #fca5a5", background: "#fff5f5",
                                     color: "#dc2626", fontWeight: 700, fontSize: 13, cursor: "pointer",
-                                }}>Remove</button>
+                                }}>Remove Key</button>
                             )}
                         </div>
 

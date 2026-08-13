@@ -1069,13 +1069,16 @@ app.post("/chat/ai", async (req, res) => {
     try {
         const { messages } = req.body;
 
-        // Get the API key from settings table
+        // Get the API key and model from settings table
         const [[settingRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_api_key'").catch(() => [[null]]);
         const apiKey = settingRow?.value;
         if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
 
+        const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
+        const aiModel = modelRow?.value || "meta-llama/llama-3.1-8b-instruct:free";
+
         const body = JSON.stringify({
-            model: "mistralai/mistral-7b-instruct:free",
+            model: aiModel,
             messages: [
                 {
                     role: "system",
