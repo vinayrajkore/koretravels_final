@@ -4,6 +4,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 import API_URL from "../api";
 
 // ── Time Greeting (IST) ──────────────────────────────────────────
@@ -289,22 +290,9 @@ export default function KoreBot() {
 
     const switchMode = (m) => {
         setMode(m);
-        if (m === "search") addMsg("bot", "🔍 **Search Mode** on!\nAsk me about buses like:\n*\"Pune to Mumbai on 20 Aug\"*\nOr ask about cancellation, seats, luggage...");
+        if (m === "search") addMsg("bot", "🔍 **Search Mode** on!\nAsk me about buses like:\n*\"Gargoti to Pune on 20 Aug\"*\nOr ask about cancellation, seats, luggage...");
         else addMsg("bot", "✨ **AI Mode** on!\nAsk me anything about travel, journey tips, or bus services.\n\n*Note: I can only answer travel & tourism related questions.*");
     };
-
-    // Markdown renderer
-    const renderText = (text) =>
-        text.split("\n").map((line, li, arr) => (
-            <span key={li}>
-                {line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((p, i) => {
-                    if (p.startsWith("**") && p.endsWith("**")) return <strong key={i}>{p.slice(2,-2)}</strong>;
-                    if (p.startsWith("*")  && p.endsWith("*"))  return <em key={i}>{p.slice(1,-1)}</em>;
-                    return p;
-                })}
-                {li < arr.length-1 && <br/>}
-            </span>
-        ));
 
     // Quick chip sets
     const searchChips = ["Gargoti to Pune today", "Kolhapur to Pune tomorrow", "How to cancel booking?", "What seats are available?"];
@@ -434,7 +422,7 @@ export default function KoreBot() {
 
                             <div style={{ maxWidth:"84%", display:"flex", flexDirection:"column", gap:6, alignItems: msg.role==="user" ? "flex-end" : "flex-start" }}>
                                 {/* Text bubble */}
-                                <div style={{
+                                <div className={msg.role === "bot" ? "korebot-md" : ""} style={{
                                     padding:"9px 13px", fontSize:13, lineHeight:1.65,
                                     background: msg.role==="user"
                                         ? "linear-gradient(135deg,#0d3d35,#1a7a6e)"
@@ -443,7 +431,11 @@ export default function KoreBot() {
                                     borderRadius: msg.role==="user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                                     border: msg.role==="bot" ? "1px solid #e8f0ee" : "none",
                                 }}>
-                                    {renderText(msg.text)}
+                                    {msg.role === "bot" ? (
+                                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                    ) : (
+                                        <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
+                                    )}
                                 </div>
 
                                 {/* Bus result cards */}
@@ -571,6 +563,50 @@ export default function KoreBot() {
                     40% { transform:scale(1); opacity:1; }
                 }
                 #korebot-toggle { font-family:'Poppins','Segoe UI',sans-serif; }
+                
+                /* Markdown Styling for Bot Responses */
+                .korebot-md {
+                    font-family: 'Poppins', 'Segoe UI', sans-serif;
+                }
+                .korebot-md p {
+                    margin-top: 0;
+                    margin-bottom: 8px;
+                }
+                .korebot-md p:last-child {
+                    margin-bottom: 0;
+                }
+                .korebot-md ul, .korebot-md ol {
+                    margin-top: 4px;
+                    margin-bottom: 8px;
+                    padding-left: 20px;
+                }
+                .korebot-md li {
+                    margin-bottom: 3px;
+                }
+                .korebot-md strong {
+                    font-weight: 700;
+                    color: #0d3d35;
+                }
+                .korebot-md em {
+                    font-style: italic;
+                    color: #1e293b;
+                }
+                .korebot-md h1, .korebot-md h2, .korebot-md h3, .korebot-md h4 {
+                    font-size: 14px;
+                    font-weight: 800;
+                    margin: 10px 0 6px;
+                    color: #0d3d35;
+                }
+                .korebot-md h1:first-child, .korebot-md h2:first-child, .korebot-md h3:first-child {
+                    margin-top: 0;
+                }
+                .korebot-md code {
+                    background: #e2e8f0;
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                    font-family: monospace;
+                    font-size: 12px;
+                }
             `}</style>
         </>
     );
