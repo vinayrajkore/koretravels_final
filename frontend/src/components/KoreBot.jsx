@@ -207,6 +207,7 @@ export default function KoreBot() {
                     "meta-llama/llama-3.1-8b-instruct:free": "Llama 3.1 8B",
                     "google/gemini-2.0-flash-lite-preview-02-05:free": "Gemini Flash Lite",
                     "google/gemini-2.0-pro-exp-02-05:free": "Gemini 2.0 Pro",
+                    "openai/gpt-oss-20b:free": "GPT OSS 20B",
                     "mistralai/mistral-7b-instruct:free": "Mistral 7B",
                     "qwen/qwen-2-7b-instruct:free": "Qwen 2 7B",
                     "microsoft/phi-3-mini-128k-instruct:free": "Phi-3 Mini"

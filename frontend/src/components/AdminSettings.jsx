@@ -18,6 +18,7 @@ function AdminSettings() {
         { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B (Free)" },
         { value: "google/gemini-2.0-flash-lite-preview-02-05:free", label: "Gemini Flash Lite (Free)" },
         { value: "google/gemini-2.0-pro-exp-02-05:free", label: "Gemini 2.0 Pro (Free)" },
+        { value: "openai/gpt-oss-20b:free", label: "GPT OSS 20B (Free)" },
         { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Free)" },
         { value: "qwen/qwen-2-7b-instruct:free", label: "Qwen 2 7B (Free OSS)" },
         { value: "microsoft/phi-3-mini-128k-instruct:free", label: "Phi-3 Mini (Free OSS)" }
