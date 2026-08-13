@@ -78,7 +78,7 @@ const FAQ = [
     { keys: ["timing","time","departure","arrival","schedule","schedule"],
       ans: "**Bus Timings:**\nDeparture and arrival times are shown on every bus card when you search.\n• Timings are in **IST (Indian Standard Time)**\n• Board at least 15 mins before departure\n• Delays are rare but contact us if your bus is late." },
     { keys: ["route","which route","routes available","cities","where do you go"],
-      ans: "**Available Routes:**\nWe operate buses across Maharashtra including routes from/to:\n• Kolhapur, Pune, Mumbai, Ajara, Sangli, Satara and more!\n\nSearch your route on the home page to see live availability 🗺️" },
+      ans: "**Available Routes:**\nWe operate buses across Maharashtra including routes from/to:\n• Kolhapur, Pune, Mumbai, Gargoti, Sangli, Satara and more!\n\nSearch your route on the home page to see live availability 🗺️" },
     { keys: ["amenities","wifi","charging","water","food","snack"],
       ans: "**Bus Amenities:**\nAmenities vary by bus and are shown on each bus card:\n• WiFi (select buses)\n• Charging ports\n• Water bottles\n• Blankets (sleeper buses)\nCheck the bus listing for specific amenities." },
     { keys: ["contact","phone","call","whatsapp","support","help","owner","reach"],
@@ -180,8 +180,8 @@ export default function KoreBot() {
     const welcomeMsg = {
         role: "bot", type: "welcome",
         text: userName
-            ? `${greeting}, **${userName}**! 👋\n\nI'm **KoreBot**, your Kore Travels assistant.\n\n🔍 **Search Mode** — Find buses by asking:\n*"Ajara to Pune on 12 Aug"*\n\n✨ **AI Mode** — Ask anything about travel, safety, tips & more!`
-            : `${greeting}! 👋\n\nI'm **KoreBot**, your Kore Travels assistant.\n\n🔍 Ask me to search buses like:\n*"Ajara to Pune on 12 Aug"*\n\n✨ Or switch to **AI Mode** for travel tips!`,
+            ? `${greeting}, **${userName}**! 👋\n\nI'm **KoreBot**, your Kore Travels assistant.\n\n🔍 **Search Mode** — Find buses by asking:\n*"Gargoti to Pune on 28 Sep"*\n\n✨ **AI Mode** — Ask anything about travel, safety, tips & more!`
+            : `${greeting}! 👋\n\nI'm **KoreBot**, your Kore Travels assistant.\n\n🔍 Ask me to search buses like:\n*"Gargoti to Pune on 28 Sep"*\n\n✨ Or switch to **AI Mode** for travel tips!`,
     };
 
     const [open, setOpen]         = useState(false);
@@ -305,7 +305,7 @@ export default function KoreBot() {
         ));
 
     // Quick chip sets
-    const searchChips = ["Ajara to Pune today", "Kolhapur to Pune tomorrow", "How to cancel booking?", "What seats are available?"];
+    const searchChips = ["Gargoti to Pune today", "Kolhapur to Pune tomorrow", "How to cancel booking?", "What seats are available?"];
     const aiChips     = ["Tips for long bus journeys", "What to carry on overnight trips?", "Is bus travel safe at night?"];
 
     return (
@@ -416,7 +416,7 @@ export default function KoreBot() {
                     fontWeight:600, display:"flex", alignItems:"center", gap:5, flexShrink:0,
                 }}>
                     {mode==="search"
-                        ? <><IcSearch /> Ask: "Ajara to Pune on 12 Aug" or about bookings</>
+                        ? <><IcSearch /> Ask: "Gargoti to Pune on 28 Sep" or about bookings</>
                         : <><IcSpark /> AI Travel Assistant — travel &amp; tourism questions only</>}
                 </div>
 
@@ -533,7 +533,7 @@ export default function KoreBot() {
                 <div style={{ padding:"10px 10px 10px", borderTop:"1px solid #f0f0f0", display:"flex", gap:8, alignItems:"flex-end", flexShrink:0 }}>
                     <textarea ref={inputRef} value={input}
                         onChange={e=>setInput(e.target.value)} onKeyDown={handleKey}
-                        placeholder={mode==="search" ? "Ajara to Pune on 12 Aug… or ask anything" : "Ask about travel, safety, tips…"}
+                        placeholder={mode==="search" ? "Gargoti to Pune on 28 Sep… or ask anything" : "Ask about travel, safety, tips…"}
                         rows={1}
                         style={{
                             flex:1, border:"1.5px solid #e2e8f0", borderRadius:12,
