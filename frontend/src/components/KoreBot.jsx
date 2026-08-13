@@ -193,12 +193,30 @@ export default function KoreBot() {
     const [loading, setLoading]   = useState(false);
     const [pulse, setPulse]       = useState(true);
     const [aiModelName, setAiModelName] = useState("AI Model");
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
     const msgEnd   = useRef(null);
     const inputRef = useRef(null);
 
     useEffect(() => { msgEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
     useEffect(() => { if (open) { setTimeout(() => inputRef.current?.focus(), 200); } }, [open]);
     useEffect(() => { const t = setTimeout(() => setPulse(false), 5000); return () => clearTimeout(t); }, []);
+
+    // Track mobile breakpoint
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 480);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    // Prevent body scroll when chat is open on mobile
+    useEffect(() => {
+        if (isMobile && open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [isMobile, open]);
     
     // Fetch active AI model for display
     useEffect(() => {
@@ -298,23 +316,75 @@ export default function KoreBot() {
     const searchChips = ["Gargoti to Pune today", "Kolhapur to Pune tomorrow", "How to cancel booking?", "What seats are available?"];
     const aiChips     = ["Tips for long bus journeys", "What to carry on overnight trips?", "Is bus travel safe at night?"];
 
+    // Compute responsive styles
+    const toggleBtnStyle = {
+        position: "fixed",
+        bottom: isMobile ? "16px" : "24px",
+        right: isMobile ? "16px" : "24px",
+        width: "52px", height: "52px", borderRadius: "50%",
+        background: "linear-gradient(135deg,#0d3d35,#1a7a6e)",
+        border: "2.5px solid #c8ff00", color: "#c8ff00",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 8px 28px rgba(13,61,53,0.5)",
+        cursor: "pointer", zIndex: 10001,
+        transition: "transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275)",
+        animation: pulse ? "korebot-pulse 2s 3" : "none",
+        fontFamily: "'Poppins','Segoe UI',sans-serif",
+        fontWeight: 900, fontSize: 14, letterSpacing: "-0.5px",
+    };
+
+    const chatWindowStyle = isMobile ? {
+        // Mobile: near-fullscreen anchored at bottom
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: "100%",
+        height: open ? "90dvh" : 0,
+        maxHeight: "90dvh",
+        background: "#fff",
+        borderRadius: "20px 20px 0 0",
+        boxShadow: "0 -8px 40px rgba(0,0,0,0.22)",
+        display: "flex", flexDirection: "column", overflow: "hidden",
+        zIndex: 10000,
+        transition: "opacity 0.3s, transform 0.3s",
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? "auto" : "none",
+        transform: open ? "translateY(0)" : "translateY(100%)",
+        transformOrigin: "bottom center",
+    } : {
+        // Desktop: floating panel
+        position: "fixed",
+        bottom: "88px",
+        right: "20px",
+        width: "min(390px, calc(100vw - 32px))",
+        maxHeight: "min(560px, calc(100dvh - 120px))",
+        background: "#fff", borderRadius: "20px",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(13,61,53,0.08)",
+        display: "flex", flexDirection: "column", overflow: "hidden",
+        zIndex: 9999,
+        transition: "opacity 0.25s, transform 0.25s",
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? "auto" : "none",
+        transform: open ? "translateY(0) scale(1)" : "translateY(20px) scale(0.96)",
+        transformOrigin: "bottom right",
+    };
+
     return (
         <>
+            {/* ── Mobile Backdrop ──────────────────────────────── */}
+            {isMobile && open && (
+                <div onClick={() => setOpen(false)} style={{
+                    position: "fixed", inset: 0,
+                    background: "rgba(0,0,0,0.45)",
+                    zIndex: 9999,
+                    backdropFilter: "blur(2px)",
+                }} />
+            )}
+
             {/* ── Floating Toggle ─────────────────────────────── */}
             <button id="korebot-toggle" onClick={() => setOpen(o => !o)} title="Chat with KoreBot"
-                style={{
-                    position:"fixed", bottom:"100px", right:"30px",
-                    width:"56px", height:"56px", borderRadius:"50%",
-                    background:"linear-gradient(135deg,#0d3d35,#1a7a6e)",
-                    border:"2.5px solid #c8ff00", color:"#c8ff00",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    boxShadow:"0 8px 28px rgba(13,61,53,0.5)",
-                    cursor:"pointer", zIndex:10000,
-                    transition:"transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275)",
-                    animation: pulse ? "korebot-pulse 2s 3" : "none",
-                    fontFamily:"'Poppins','Segoe UI',sans-serif",
-                    fontWeight: 900, fontSize: 14, letterSpacing: "-0.5px",
-                }}
+                style={toggleBtnStyle}
                 onMouseOver={e => e.currentTarget.style.transform="scale(1.12)"}
                 onMouseOut={e  => e.currentTarget.style.transform="scale(1)"}
             >
@@ -338,20 +408,7 @@ export default function KoreBot() {
             </button>
 
             {/* ── Chat Window ──────────────────────────────────── */}
-            <div style={{
-                position:"fixed", bottom:"168px", right:"20px",
-                width:"min(390px, calc(100vw - 24px))",
-                maxHeight:"560px",
-                background:"#fff", borderRadius:"20px",
-                boxShadow:"0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(13,61,53,0.08)",
-                display:"flex", flexDirection:"column", overflow:"hidden",
-                zIndex:9999,
-                transition:"opacity 0.25s, transform 0.25s",
-                opacity: open ? 1 : 0,
-                pointerEvents: open ? "auto" : "none",
-                transform: open ? "translateY(0) scale(1)" : "translateY(20px) scale(0.96)",
-                transformOrigin:"bottom right",
-            }}>
+            <div style={chatWindowStyle}>
 
                 {/* Header */}
                 <div style={{
@@ -563,6 +620,13 @@ export default function KoreBot() {
                     40% { transform:scale(1); opacity:1; }
                 }
                 #korebot-toggle { font-family:'Poppins','Segoe UI',sans-serif; }
+
+                /* Mobile safe area for toggle button */
+                @supports (padding-bottom: env(safe-area-inset-bottom)) {
+                    #korebot-toggle {
+                        bottom: calc(16px + env(safe-area-inset-bottom));
+                    }
+                }
                 
                 /* Markdown Styling for Bot Responses */
                 .korebot-md {
@@ -606,6 +670,13 @@ export default function KoreBot() {
                     border-radius: 4px;
                     font-family: monospace;
                     font-size: 12px;
+                }
+
+                /* Ensure chat messages area fills available space on mobile */
+                @media (max-width: 480px) {
+                    .korebot-md p, .korebot-md li {
+                        font-size: 13px;
+                    }
                 }
             `}</style>
         </>
