@@ -1043,6 +1043,17 @@ app.put("/admin/settings", async (req, res) => {
 // ════════════════════════════════════════════════════════════
 
 // POST /chat/search — search buses for chatbot
+//  KOREBOT - Chat Config
+app.get("/chat/config", async (req, res) => {
+    try {
+        const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
+        const aiModel = modelRow?.value || "meta-llama/llama-3.1-8b-instruct:free";
+        res.json({ model: aiModel });
+    } catch(err) {
+        res.status(500).json({ model: "meta-llama/llama-3.1-8b-instruct:free" });
+    }
+});
+
 app.post("/chat/search", async (req, res) => {
     try {
         const { from_city, to_city, travel_date } = req.body;

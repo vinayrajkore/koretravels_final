@@ -15,12 +15,12 @@ function AdminSettings() {
     const [msg, setMsg]         = useState(null);
 
     const availableModels = [
-        { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B Instruct (Free/Reliable)" },
-        { value: "google/gemini-2.5-flash-free", label: "Google Gemini 2.5 Flash (Free)" },
-        { value: "google/gemini-2.0-pro-exp-02-05:free", label: "Google Gemini 2.0 Pro Exp (Free)" },
-        { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B Instruct (Free/Often Offline)" },
-        { value: "openai/gpt-4o-mini", label: "GPT-4o Mini (Paid)" },
-        { value: "openai/gpt-3.5-turbo", label: "GPT-3.5 Turbo (Paid)" }
+        { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B (Free)" },
+        { value: "google/gemini-2.5-flash-free", label: "Gemini 2.5 Flash (Free)" },
+        { value: "google/gemini-2.0-pro-exp-02-05:free", label: "Gemini 2.0 Pro (Free)" },
+        { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Free)" },
+        { value: "qwen/qwen-2-7b-instruct:free", label: "Qwen 2 7B (Free OSS)" },
+        { value: "microsoft/phi-3-mini-128k-instruct:free", label: "Phi-3 Mini (Free OSS)" }
     ];
 
     useEffect(() => {

@@ -186,12 +186,30 @@ export default function KoreBot() {
     const [aiHistory, setAiHistory] = useState([]);
     const [loading, setLoading]   = useState(false);
     const [pulse, setPulse]       = useState(true);
+    const [aiModelName, setAiModelName] = useState("AI Model");
     const msgEnd   = useRef(null);
     const inputRef = useRef(null);
 
     useEffect(() => { msgEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
     useEffect(() => { if (open) { setTimeout(() => inputRef.current?.focus(), 200); } }, [open]);
     useEffect(() => { const t = setTimeout(() => setPulse(false), 5000); return () => clearTimeout(t); }, []);
+    
+    // Fetch active AI model for display
+    useEffect(() => {
+        axios.get(`${API_URL}/chat/config`)
+            .then(res => {
+                const map = {
+                    "meta-llama/llama-3.1-8b-instruct:free": "Llama 3.1 8B",
+                    "google/gemini-2.5-flash-free": "Gemini 2.5 Flash",
+                    "google/gemini-2.0-pro-exp-02-05:free": "Gemini 2.0 Pro",
+                    "mistralai/mistral-7b-instruct:free": "Mistral 7B",
+                    "qwen/qwen-2-7b-instruct:free": "Qwen 2 7B",
+                    "microsoft/phi-3-mini-128k-instruct:free": "Phi-3 Mini"
+                };
+                setAiModelName(map[res.data.model] || "AI Model");
+            })
+            .catch(() => {});
+    }, []);
 
     const addMsg = useCallback((role, text, extra = {}) =>
         setMessages(prev => [...prev, { role, text, ...extra }]), []);
@@ -340,7 +358,7 @@ export default function KoreBot() {
                     <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ color:"#fff", fontWeight:800, fontSize:14, lineHeight:1 }}>KoreBot</div>
                         <div style={{ color:"rgba(200,255,0,0.75)", fontSize:11, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                            {loading ? "Typing…" : "Kore Travels Assistant • Online"}
+                            {loading ? "Typing…" : (mode === "ai" ? `Powered by ${aiModelName}` : "Kore Travels Assistant • Online")}
                         </div>
                     </div>
 
