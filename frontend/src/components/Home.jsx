@@ -80,10 +80,8 @@ function BannerSlideshow({ banners }) {
                                 src={b.image_filename}
                                 alt={b.title || "Banner"}
                                 style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    objectPosition: "center",
+                                    maxWidth: "100%", maxHeight: "100%",
+                                    objectFit: "contain",
                                     display: "block",
                                 }}
                             />
