@@ -197,16 +197,16 @@ function Layout() {
                     {/* KoreBot floating chatbot */}
                     <KoreBot />
 
-                    {/* Call button — below KoreBot */}
+                    {/* Call button — above KoreBot */}
                     <a
                         href="tel:8554886526"
                         title="Call Us Now"
                         style={{
                             position: "fixed",
-                            bottom: "30px",
-                            right: "30px",
-                            width: "56px",
-                            height: "56px",
+                            bottom: "90px",
+                            right: "20px",
+                            width: "50px",
+                            height: "50px",
                             borderRadius: "50%",
                             background: "linear-gradient(135deg, #16a34a, #15803d)",
                             color: "#ffffff",
