@@ -204,9 +204,9 @@ function Layout() {
                         style={{
                             position: "fixed",
                             bottom: "90px",
-                            right: "20px",
-                            width: "50px",
-                            height: "50px",
+                            right: "24px",
+                            width: "52px",
+                            height: "52px",
                             borderRadius: "50%",
                             background: "linear-gradient(135deg, #16a34a, #15803d)",
                             color: "#ffffff",
