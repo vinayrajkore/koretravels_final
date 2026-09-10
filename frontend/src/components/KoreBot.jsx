@@ -305,7 +305,7 @@ export default function KoreBot() {
                         const r = await fetch(
                             `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
                             { method: "POST", headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 512, temperature: 0.7 } }) }
+                              body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 1500, temperature: 0.7 } }) }
                         );
                         return r.json();
                     };
