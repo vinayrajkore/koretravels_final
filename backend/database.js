@@ -3,6 +3,8 @@
 // express + mysql2 + cors + multer + nodemailer
 // dotenv added for deployment-ready configuration
 
+// Kore Travels Backend API — v2.1 (AI model whitelist enforced)
+// Deployed: main branch — OpenRouter free-model whitelist active
 require("dotenv").config();   // Load .env variables first
 
 const express  = require("express");
