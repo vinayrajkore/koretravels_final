@@ -285,22 +285,64 @@ export default function KoreBot() {
             addMsg("bot", "I didn't quite understand that. You can:\n• Search a bus route: *\"Kolhapur to Pune on 15 Aug\"*\n• Ask about bookings, seats, cancellation, luggage...\n• Or contact our team directly:", { type: "fallback" });
 
         } else {
-            // AI mode
+            // AI mode — try Gemini directly from browser first (no Render dependency)
             const newHistory = [...aiHistory, { role: "user", content: q }];
             setAiHistory(newHistory);
             setLoading(true);
-            try {
-                const { data } = await axios.post(`${API_URL}/chat/ai`, { messages: newHistory });
-                addMsg("bot", data.reply);
-                setAiHistory(prev => [...prev, { role: "assistant", content: data.reply }]);
-            } catch(e) {
-                const errMsg = e?.response?.data?.message || "";
-                if (errMsg.includes("not configured")) {
-                    addMsg("bot", "⚠️ AI mode isn't configured yet. The admin needs to add an OpenRouter API key from the Admin Panel.\n\nMeanwhile, switch to **Search Mode** to find buses or ask general questions!");
-                } else {
-                    addMsg("bot", `⚠️ ${errMsg || "AI is temporarily unavailable. Please try again."}`);
-                }
-            } finally { setLoading(false); }
+
+            const geminiKey = localStorage.getItem("kt_gemini_key");
+
+            if (geminiKey) {
+                // Call Google Gemini 1.5 Flash directly from the browser (CORS supported)
+                try {
+                    const systemPrompt = "You are KoreBot, a helpful AI travel assistant for Kore Travels - India's trusted bus booking platform in Maharashtra. You ONLY answer questions about: travel, tourism, bus journeys, transportation, journey planning, travel safety, packing tips, Indian destinations, seat types, cancellation, luggage, boarding points, or Kore Travels services. If someone asks unrelated topics, politely say: I am KoreBot, specialized only in travel and bus booking. I cannot help with that topic, but I would love to assist with your journey plans! Be friendly, warm and concise. Reply in the same language as the user (Hindi, Marathi, or English).";
+                    const geminiMessages = newHistory.map(m => ({
+                        role: m.role === "assistant" ? "model" : "user",
+                        parts: [{ text: m.content }]
+                    }));
+                    const res = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                system_instruction: { parts: [{ text: systemPrompt }] },
+                                contents: geminiMessages,
+                                generationConfig: { maxOutputTokens: 512 }
+                            })
+                        }
+                    );
+                    const json = await res.json();
+                    if (json.error) throw new Error(json.error.message || "Gemini error");
+                    const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!reply) throw new Error("Empty response from Gemini");
+                    addMsg("bot", reply);
+                    setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                } catch(e) {
+                    // Gemini failed — try backend fallback
+                    try {
+                        const { data } = await axios.post(`${API_URL}/chat/ai`, { messages: newHistory });
+                        addMsg("bot", data.reply);
+                        setAiHistory(prev => [...prev, { role: "assistant", content: data.reply }]);
+                    } catch(e2) {
+                        addMsg("bot", `⚠️ AI is temporarily unavailable. Please try again in a moment.`);
+                    }
+                } finally { setLoading(false); }
+            } else {
+                // No Gemini key in localStorage — use backend /chat/ai (OpenRouter chain)
+                try {
+                    const { data } = await axios.post(`${API_URL}/chat/ai`, { messages: newHistory });
+                    addMsg("bot", data.reply);
+                    setAiHistory(prev => [...prev, { role: "assistant", content: data.reply }]);
+                } catch(e) {
+                    const errMsg = e?.response?.data?.message || "";
+                    if (errMsg.includes("not configured")) {
+                        addMsg("bot", "⚠️ AI mode isn't configured yet. The admin needs to add a Gemini or OpenRouter API key from Admin → Bot & AI Settings.\n\nMeanwhile, switch to **Search Mode** to find buses!");
+                    } else {
+                        addMsg("bot", `⚠️ ${errMsg || "AI is temporarily unavailable. Please try again."}`);
+                    }
+                } finally { setLoading(false); }
+            }
         }
     };
 

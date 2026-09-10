@@ -136,7 +136,9 @@ function AdminSettings() {
                                     try {
                                         await axios.put(`${API_URL}/admin/settings`, { key: "gemini_api_key", value: geminiKey.trim() });
                                         setSavedGemini(geminiKey.trim());
-                                        setMsg({ type: "success", text: "✅ Google Gemini API key saved! KoreBot AI will now use Gemini as primary provider." });
+                                        // Store in localStorage so KoreBot can call Gemini directly from browser
+                                        localStorage.setItem("kt_gemini_key", geminiKey.trim());
+                                        setMsg({ type: "success", text: "✅ Google Gemini API key saved! KoreBot AI will now use Gemini directly." });
                                     } catch(e) {
                                         setMsg({ type: "error", text: "❌ Failed: " + (e?.response?.data?.message || e.message) });
                                     } finally { setLoading(false); }
@@ -161,6 +163,7 @@ function AdminSettings() {
                                         setLoading(true);
                                         try {
                                             await axios.put(`${API_URL}/admin/settings`, { key: "gemini_api_key", value: "" });
+                                            localStorage.removeItem("kt_gemini_key");
                                             setGeminiKey(""); setSavedGemini("");
                                             setMsg({ type: "success", text: "Gemini key removed." });
                                         } catch(e) { setMsg({ type: "error", text: "Failed to remove." }); }
