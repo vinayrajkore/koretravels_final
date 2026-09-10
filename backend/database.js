@@ -1062,7 +1062,11 @@ app.get("/chat/config", async (req, res) => {
         const aiModel = (stored && FREE_MODELS.includes(stored))
             ? stored
             : "mistralai/mistral-7b-instruct:free"; // most stable free model
-        res.json({ model: aiModel });
+        // Also return Gemini key so any device can call Gemini directly from browser
+        const [[geminiRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='gemini_api_key'").catch(() => [[null]]);
+        const geminiKey = geminiRow?.value || null;
+
+        res.json({ model: aiModel, geminiKey });
     } catch(err) {
         res.status(500).json({ model: "mistralai/mistral-7b-instruct:free" });
     }

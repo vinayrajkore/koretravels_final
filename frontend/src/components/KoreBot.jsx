@@ -193,6 +193,7 @@ export default function KoreBot() {
     const [loading, setLoading]   = useState(false);
     const [pulse, setPulse]       = useState(true);
     const [aiModelName, setAiModelName] = useState("AI Model");
+    const [geminiKeyState, setGeminiKeyState] = useState(localStorage.getItem("kt_gemini_key") || "");
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
     const msgEnd   = useRef(null);
     const inputRef = useRef(null);
@@ -218,7 +219,7 @@ export default function KoreBot() {
         return () => { document.body.style.overflow = ""; };
     }, [isMobile, open]);
     
-    // Fetch active AI model for display
+    // Fetch active AI model + Gemini key from backend
     useEffect(() => {
         axios.get(`${API_URL}/chat/config`)
             .then(res => {
@@ -232,7 +233,12 @@ export default function KoreBot() {
                     "microsoft/phi-3-mini-128k-instruct:free": "Phi-3 Mini",
                     "openai/gpt-4o-mini-search-preview:free": "GPT-4o Mini",
                 };
-                setAiModelName(map[res.data.model] || res.data.model?.split("/").pop()?.replace(":free","") || "AI Model");
+                setAiModelName(res.data.geminiKey ? "Gemini AI" : (map[res.data.model] || res.data.model?.split("/").pop()?.replace(":free","") || "AI Model"));
+                // Store Gemini key from DB in state + localStorage (works on ALL devices)
+                if (res.data.geminiKey) {
+                    setGeminiKeyState(res.data.geminiKey);
+                    localStorage.setItem("kt_gemini_key", res.data.geminiKey);
+                }
             })
             .catch(() => {});
     }, []);
@@ -290,7 +296,7 @@ export default function KoreBot() {
             setAiHistory(newHistory);
             setLoading(true);
 
-            const geminiKey = localStorage.getItem("kt_gemini_key");
+            const geminiKey = geminiKeyState || localStorage.getItem("kt_gemini_key");
 
             if (geminiKey) {
                 try {
