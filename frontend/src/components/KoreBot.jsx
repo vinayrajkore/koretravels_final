@@ -302,34 +302,52 @@ export default function KoreBot() {
                         parts: [{ text: i === 0 ? `${systemPrompt}\n\nUser: ${m.content}` : m.content }]
                     }));
 
-                    const res = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                contents,
-                                generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-                            })
-                        }
-                    );
-                    const json = await res.json();
+                    // Try multiple Gemini models in order (API key may support different versions)
+                    const geminiModels = [
+                        "gemini-2.0-flash",
+                        "gemini-2.0-flash-lite",
+                        "gemini-1.5-flash-latest",
+                        "gemini-1.0-pro",
+                    ];
 
-                    if (json.error) {
-                        // Show actual error so user can fix the key if needed
-                        addMsg("bot", `❌ Gemini API error: ${json.error.message}\n\nPlease check your Gemini API key in Admin → Bot & AI Settings.`);
-                    } else {
-                        const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (!reply) {
-                            addMsg("bot", "⚠️ Gemini returned an empty response. Please try again.");
-                        } else {
-                            addMsg("bot", reply);
-                            setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                    let reply = null;
+                    let lastError = "";
+                    for (const modelName of geminiModels) {
+                        const res = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    contents,
+                                    generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+                                })
+                            }
+                        );
+                        const json = await res.json();
+                        if (json.error) {
+                            lastError = json.error.message || "Unknown error";
+                            // Model not found / not supported — try next
+                            if (json.error.code === 404 || (lastError.toLowerCase().includes("not found") || lastError.toLowerCase().includes("not supported"))) {
+                                continue;
+                            }
+                            // Other error (bad key, quota) — stop
+                            break;
                         }
+                        reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (reply) break; // Got a response — done!
+                    }
+
+                    if (reply) {
+                        addMsg("bot", reply);
+                        setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                    } else {
+                        addMsg("bot", `❌ Gemini API error: ${lastError}\n\nPlease check your Gemini API key in Admin → Bot & AI Settings.`);
                     }
                 } catch(e) {
-                    addMsg("bot", `❌ Failed to reach Gemini: ${e.message}. Check your internet connection or try re-saving your API key in Admin → Bot & AI Settings.`);
+                    addMsg("bot", `❌ Failed to reach Gemini: ${e.message}.`);
                 } finally { setLoading(false); }
+
             } else {
                 // No Gemini key — use backend /chat/ai
                 try {
