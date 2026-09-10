@@ -301,61 +301,66 @@ export default function KoreBot() {
                         parts: [{ text: i === 0 ? `${systemPrompt}\n\nUser: ${m.content}` : m.content }]
                     }));
 
-                    // Step 1: Fetch available models for this API key dynamically
-                    const modelsRes = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`
-                    );
+                    const callGeminiModel = async (modelName) => {
+                        const r = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 512, temperature: 0.7 } })
+                            }
+                        );
+                        return r.json();
+                    };
+
+                    // Step 1: List available models dynamically
+                    const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
                     const modelsJson = await modelsRes.json();
+                    if (modelsJson.error) { addMsg("bot", `❌ Gemini key error: ${modelsJson.error.message}`); setLoading(false); return; }
 
-                    if (modelsJson.error) {
-                        addMsg("bot", `❌ Gemini API key error: ${modelsJson.error.message}`);
-                        setLoading(false);
-                        return;
-                    }
-
-                    // Pick models that support generateContent, prefer flash/fast ones
                     const available = (modelsJson.models || [])
                         .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
-                        .map(m => m.name.replace("models/", ""));
+                        .map(m => m.name.replace("models/", ""))
+                        // Sort: newest version numbers first
+                        .sort((a, b) => {
+                            const vA = parseFloat((a.match(/(\d+\.\d+|\d+)/)?.[0]) || 0);
+                            const vB = parseFloat((b.match(/(\d+\.\d+|\d+)/)?.[0]) || 0);
+                            return vB - vA;
+                        });
 
-                    if (available.length === 0) {
-                        addMsg("bot", "❌ No Gemini models support generateContent for your API key. Please create a new key at aistudio.google.com.");
-                        setLoading(false);
-                        return;
+                    if (!available.length) { addMsg("bot", "❌ No Gemini models available. Please create a new API key at aistudio.google.com."); setLoading(false); return; }
+
+                    // Pick best flash model, fallback to first available
+                    const modelToUse = available.find(m => m.includes("flash")) || available[0];
+
+                    // Step 2: Call chosen model
+                    let json = await callGeminiModel(modelToUse);
+
+                    // Step 3: If deprecated, parse suggested model from error and retry
+                    if (json.error) {
+                        const errMsg = json.error.message || "";
+                        const suggestedMatch = errMsg.match(/models\/([\w.-]+)/);
+                        if (suggestedMatch && errMsg.toLowerCase().includes("no longer available")) {
+                            const suggestedModel = suggestedMatch[1];
+                            json = await callGeminiModel(suggestedModel);
+                        }
                     }
 
-                    // Prefer flash/lite models (fastest), fallback to whatever is available
-                    const preferred = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash-001", "gemini-1.5-flash-002", "gemini-1.5-flash-8b", "gemini-1.5-pro", "gemini-1.0-pro"];
-                    const modelToUse = preferred.find(p => available.includes(p)) || available[0];
-
-                    // Step 2: Call the chosen model
-                    const res = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${geminiKey}`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                contents,
-                                generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-                            })
-                        }
-                    );
-                    const json = await res.json();
-
                     if (json.error) {
-                        addMsg("bot", `❌ Gemini error (${modelToUse}): ${json.error.message}`);
+                        addMsg("bot", `❌ Gemini error: ${json.error.message}`);
                     } else {
                         const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (!reply) {
-                            addMsg("bot", "⚠️ Gemini returned an empty response. Please try again.");
-                        } else {
+                        if (reply) {
                             addMsg("bot", reply);
                             setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                        } else {
+                            addMsg("bot", "⚠️ Gemini returned empty response. Please try again.");
                         }
                     }
                 } catch(e) {
-                    addMsg("bot", `❌ Failed to reach Gemini: ${e.message}.`);
+                    addMsg("bot", `❌ Network error: ${e.message}`);
                 } finally { setLoading(false); }
+
 
 
             } else {
