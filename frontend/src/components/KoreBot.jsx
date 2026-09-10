@@ -580,11 +580,11 @@ export default function KoreBot() {
                     </div>
                 )}
 
-                {/* Input — sticky so it's never hidden behind mobile keyboard */}
+                {/* Input — flexShrink:0 pins it to bottom of flex column */}
                 <div style={{
-                    padding:"10px 10px 10px", borderTop:"1px solid #f0f0f0",
+                    padding:"10px 10px 10px", borderTop:"1px solid #e8f0ee",
                     display:"flex", gap:8, alignItems:"flex-end", flexShrink:0,
-                    position:"sticky", bottom:0, background:"#fff", zIndex:10,
+                    background:"#fff",
                 }}>
                     <textarea ref={inputRef} value={input}
                         onChange={e=>setInput(e.target.value)} onKeyDown={handleKey}
@@ -599,13 +599,19 @@ export default function KoreBot() {
                         onInput={e=>{ e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,80)+"px"; }}
                     />
                     <button onClick={handleSend} disabled={!input.trim()||loading} style={{
-                        width:38, height:38, flexShrink:0,
-                        background: input.trim()&&!loading ? "linear-gradient(135deg,#0d3d35,#1a7a6e)" : "#e2e8f0",
-                        border:"none", borderRadius:10,
-                        color: input.trim()&&!loading ? "#c8ff00":"#94a3b8",
-                        cursor: input.trim()&&!loading ? "pointer":"not-allowed",
+                        width:40, height:40, flexShrink:0,
+                        background: input.trim()&&!loading
+                            ? "linear-gradient(135deg,#0d3d35,#1a7a6e)"
+                            : "#fff",
+                        border: input.trim()&&!loading
+                            ? "none"
+                            : "1.5px solid #c8ff00",
+                        borderRadius:10,
+                        color: input.trim()&&!loading ? "#c8ff00" : "#0d3d35",
+                        cursor: input.trim()&&!loading ? "pointer" : "not-allowed",
                         display:"flex", alignItems:"center", justifyContent:"center",
                         transition:"all 0.15s",
+                        opacity: loading ? 0.5 : 1,
                     }}><IcSend/></button>
                 </div>
 

@@ -1046,8 +1046,21 @@ app.put("/admin/settings", async (req, res) => {
 //  KOREBOT - Chat Config
 app.get("/chat/config", async (req, res) => {
     try {
+        const FREE_MODELS = [
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "mistralai/mistral-7b-instruct:free",
+            "google/gemma-3-12b-it:free",
+            "qwen/qwen-2-7b-instruct:free",
+            "microsoft/phi-3-mini-128k-instruct:free",
+            "openai/gpt-4o-mini-search-preview:free",
+        ];
         const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
-        const aiModel = modelRow?.value || "meta-llama/llama-3.1-8b-instruct:free";
+        const stored = modelRow?.value;
+        // Only use stored model if it's in the verified whitelist
+        const aiModel = (stored && FREE_MODELS.includes(stored))
+            ? stored
+            : "meta-llama/llama-3.1-8b-instruct:free";
         res.json({ model: aiModel });
     } catch(err) {
         res.status(500).json({ model: "meta-llama/llama-3.1-8b-instruct:free" });
