@@ -31,7 +31,14 @@ function AdminSettings() {
             .then(r => { 
                 if (r.data?.openrouter_api_key) { setSaved(r.data.openrouter_api_key); setKey(r.data.openrouter_api_key); } 
                 if (r.data?.openrouter_model)   { setSavedModel(r.data.openrouter_model); setModel(r.data.openrouter_model); }
-                if (r.data?.gemini_api_key)     { setSavedGemini(r.data.gemini_api_key); setGeminiKey(r.data.gemini_api_key); }
+                if (r.data?.gemini_api_key) {
+                    setSavedGemini(r.data.gemini_api_key);
+                    setGeminiKey(r.data.gemini_api_key);
+                    // Always sync to localStorage so KoreBot can call Gemini directly
+                    localStorage.setItem("kt_gemini_key", r.data.gemini_api_key);
+                } else {
+                    localStorage.removeItem("kt_gemini_key");
+                }
             })
             .catch(() => {})
             .finally(() => setFetching(false));
