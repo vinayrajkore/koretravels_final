@@ -193,7 +193,7 @@ export default function KoreBot() {
     const [loading, setLoading]   = useState(false);
     const [pulse, setPulse]       = useState(true);
     const [aiModelName, setAiModelName] = useState("AI Model");
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
     const msgEnd   = useRef(null);
     const inputRef = useRef(null);
 
@@ -203,7 +203,7 @@ export default function KoreBot() {
 
     // Track mobile breakpoint
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 480);
+        const handleResize = () => setIsMobile(window.innerWidth <= 600);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
@@ -224,15 +224,15 @@ export default function KoreBot() {
             .then(res => {
                 const map = {
                     "meta-llama/llama-3.1-8b-instruct:free": "Llama 3.1 8B",
+                    "meta-llama/llama-3.2-3b-instruct:free": "Llama 3.2 3B",
                     "google/gemini-2.0-flash-lite-preview-02-05:free": "Gemini Flash Lite",
-                    "google/gemini-2.0-pro-exp-02-05:free": "Gemini 2.0 Pro",
-                    "openai/gpt-oss-20b:free": "GPT OSS 20B",
-                    "google/gemma-4-26b-a4b-it:free": "Gemma 4 26B",
+                    "google/gemma-3-12b-it:free": "Gemma 3 12B",
                     "mistralai/mistral-7b-instruct:free": "Mistral 7B",
                     "qwen/qwen-2-7b-instruct:free": "Qwen 2 7B",
-                    "microsoft/phi-3-mini-128k-instruct:free": "Phi-3 Mini"
+                    "microsoft/phi-3-mini-128k-instruct:free": "Phi-3 Mini",
+                    "openai/gpt-4o-mini-search-preview:free": "GPT-4o Mini",
                 };
-                setAiModelName(map[res.data.model] || "AI Model");
+                setAiModelName(map[res.data.model] || res.data.model?.split("/").pop()?.replace(":free","") || "AI Model");
             })
             .catch(() => {});
     }, []);
@@ -580,8 +580,12 @@ export default function KoreBot() {
                     </div>
                 )}
 
-                {/* Input */}
-                <div style={{ padding:"10px 10px 10px", borderTop:"1px solid #f0f0f0", display:"flex", gap:8, alignItems:"flex-end", flexShrink:0 }}>
+                {/* Input — sticky so it's never hidden behind mobile keyboard */}
+                <div style={{
+                    padding:"10px 10px 10px", borderTop:"1px solid #f0f0f0",
+                    display:"flex", gap:8, alignItems:"flex-end", flexShrink:0,
+                    position:"sticky", bottom:0, background:"#fff", zIndex:10,
+                }}>
                     <textarea ref={inputRef} value={input}
                         onChange={e=>setInput(e.target.value)} onKeyDown={handleKey}
                         placeholder={mode==="search" ? "Gargoti to Pune on 28 Sep… or ask anything" : "Ask about travel, safety, tips…"}

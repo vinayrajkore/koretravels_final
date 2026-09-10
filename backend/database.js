@@ -1086,9 +1086,20 @@ app.post("/chat/ai", async (req, res) => {
         if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
 
         const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
-        // Always use :free variant as fallback to avoid paid model errors
-        const aiModel = (modelRow?.value && modelRow.value.includes(":free"))
-            ? modelRow.value
+        // Whitelist of verified working free OpenRouter models
+        const FREE_MODELS = [
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "mistralai/mistral-7b-instruct:free",
+            "google/gemma-3-12b-it:free",
+            "qwen/qwen-2-7b-instruct:free",
+            "microsoft/phi-3-mini-128k-instruct:free",
+            "openai/gpt-4o-mini-search-preview:free",
+        ];
+        const storedModel = modelRow?.value;
+        // Only use stored model if it's in the verified whitelist
+        const aiModel = (storedModel && FREE_MODELS.includes(storedModel))
+            ? storedModel
             : "meta-llama/llama-3.1-8b-instruct:free";
 
         const body = JSON.stringify({
