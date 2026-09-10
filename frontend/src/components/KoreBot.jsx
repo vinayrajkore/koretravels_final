@@ -296,57 +296,67 @@ export default function KoreBot() {
                 try {
                     const systemPrompt = "You are KoreBot, a helpful AI travel assistant for Kore Travels - an Indian bus booking platform. Only answer travel, bus journey, tourism, safety, and booking related questions. Be friendly and concise. Reply in the user's language (Hindi, Marathi, or English).";
 
-                    // Most compatible Gemini format — system prompt prepended to first message
                     const contents = newHistory.map((m, i) => ({
                         role: m.role === "assistant" ? "model" : "user",
                         parts: [{ text: i === 0 ? `${systemPrompt}\n\nUser: ${m.content}` : m.content }]
                     }));
 
-                    // Try multiple Gemini models in order (API key may support different versions)
-                    const geminiModels = [
-                        "gemini-2.0-flash",
-                        "gemini-2.0-flash-lite",
-                        "gemini-1.5-flash-latest",
-                        "gemini-1.0-pro",
-                    ];
+                    // Step 1: Fetch available models for this API key dynamically
+                    const modelsRes = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`
+                    );
+                    const modelsJson = await modelsRes.json();
 
-                    let reply = null;
-                    let lastError = "";
-                    for (const modelName of geminiModels) {
-                        const res = await fetch(
-                            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
-                            {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    contents,
-                                    generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-                                })
-                            }
-                        );
-                        const json = await res.json();
-                        if (json.error) {
-                            lastError = json.error.message || "Unknown error";
-                            // Model not found / not supported — try next
-                            if (json.error.code === 404 || (lastError.toLowerCase().includes("not found") || lastError.toLowerCase().includes("not supported"))) {
-                                continue;
-                            }
-                            // Other error (bad key, quota) — stop
-                            break;
-                        }
-                        reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (reply) break; // Got a response — done!
+                    if (modelsJson.error) {
+                        addMsg("bot", `❌ Gemini API key error: ${modelsJson.error.message}`);
+                        setLoading(false);
+                        return;
                     }
 
-                    if (reply) {
-                        addMsg("bot", reply);
-                        setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                    // Pick models that support generateContent, prefer flash/fast ones
+                    const available = (modelsJson.models || [])
+                        .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
+                        .map(m => m.name.replace("models/", ""));
+
+                    if (available.length === 0) {
+                        addMsg("bot", "❌ No Gemini models support generateContent for your API key. Please create a new key at aistudio.google.com.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Prefer flash/lite models (fastest), fallback to whatever is available
+                    const preferred = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash-001", "gemini-1.5-flash-002", "gemini-1.5-flash-8b", "gemini-1.5-pro", "gemini-1.0-pro"];
+                    const modelToUse = preferred.find(p => available.includes(p)) || available[0];
+
+                    // Step 2: Call the chosen model
+                    const res = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${geminiKey}`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                contents,
+                                generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+                            })
+                        }
+                    );
+                    const json = await res.json();
+
+                    if (json.error) {
+                        addMsg("bot", `❌ Gemini error (${modelToUse}): ${json.error.message}`);
                     } else {
-                        addMsg("bot", `❌ Gemini API error: ${lastError}\n\nPlease check your Gemini API key in Admin → Bot & AI Settings.`);
+                        const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!reply) {
+                            addMsg("bot", "⚠️ Gemini returned an empty response. Please try again.");
+                        } else {
+                            addMsg("bot", reply);
+                            setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                        }
                     }
                 } catch(e) {
                     addMsg("bot", `❌ Failed to reach Gemini: ${e.message}.`);
                 } finally { setLoading(false); }
+
 
             } else {
                 // No Gemini key — use backend /chat/ai
