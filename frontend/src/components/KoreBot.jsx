@@ -353,12 +353,12 @@ export default function KoreBot() {
         transform: open ? "translateY(0)" : "translateY(100%)",
         transformOrigin: "bottom center",
     } : {
-        // Desktop: floating panel
+        // Desktop: floating panel — positioned higher
         position: "fixed",
-        bottom: "88px",
+        bottom: "200px",
         right: "20px",
         width: "min(390px, calc(100vw - 32px))",
-        maxHeight: "min(560px, calc(100dvh - 120px))",
+        maxHeight: "min(600px, calc(100dvh - 230px))",
         background: "#fff", borderRadius: "20px",
         boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(13,61,53,0.08)",
         display: "flex", flexDirection: "column", overflow: "hidden",
