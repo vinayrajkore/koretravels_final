@@ -293,43 +293,45 @@ export default function KoreBot() {
             const geminiKey = localStorage.getItem("kt_gemini_key");
 
             if (geminiKey) {
-                // Call Google Gemini 1.5 Flash directly from the browser (CORS supported)
                 try {
-                    const systemPrompt = "You are KoreBot, a helpful AI travel assistant for Kore Travels - India's trusted bus booking platform in Maharashtra. You ONLY answer questions about: travel, tourism, bus journeys, transportation, journey planning, travel safety, packing tips, Indian destinations, seat types, cancellation, luggage, boarding points, or Kore Travels services. If someone asks unrelated topics, politely say: I am KoreBot, specialized only in travel and bus booking. I cannot help with that topic, but I would love to assist with your journey plans! Be friendly, warm and concise. Reply in the same language as the user (Hindi, Marathi, or English).";
-                    const geminiMessages = newHistory.map(m => ({
+                    const systemPrompt = "You are KoreBot, a helpful AI travel assistant for Kore Travels - an Indian bus booking platform. Only answer travel, bus journey, tourism, safety, and booking related questions. Be friendly and concise. Reply in the user's language (Hindi, Marathi, or English).";
+
+                    // Most compatible Gemini format — system prompt prepended to first message
+                    const contents = newHistory.map((m, i) => ({
                         role: m.role === "assistant" ? "model" : "user",
-                        parts: [{ text: m.content }]
+                        parts: [{ text: i === 0 ? `${systemPrompt}\n\nUser: ${m.content}` : m.content }]
                     }));
+
                     const res = await fetch(
                         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                system_instruction: { parts: [{ text: systemPrompt }] },
-                                contents: geminiMessages,
-                                generationConfig: { maxOutputTokens: 512 }
+                                contents,
+                                generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
                             })
                         }
                     );
                     const json = await res.json();
-                    if (json.error) throw new Error(json.error.message || "Gemini error");
-                    const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (!reply) throw new Error("Empty response from Gemini");
-                    addMsg("bot", reply);
-                    setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
-                } catch(e) {
-                    // Gemini failed — try backend fallback
-                    try {
-                        const { data } = await axios.post(`${API_URL}/chat/ai`, { messages: newHistory });
-                        addMsg("bot", data.reply);
-                        setAiHistory(prev => [...prev, { role: "assistant", content: data.reply }]);
-                    } catch(e2) {
-                        addMsg("bot", `⚠️ AI is temporarily unavailable. Please try again in a moment.`);
+
+                    if (json.error) {
+                        // Show actual error so user can fix the key if needed
+                        addMsg("bot", `❌ Gemini API error: ${json.error.message}\n\nPlease check your Gemini API key in Admin → Bot & AI Settings.`);
+                    } else {
+                        const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!reply) {
+                            addMsg("bot", "⚠️ Gemini returned an empty response. Please try again.");
+                        } else {
+                            addMsg("bot", reply);
+                            setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
+                        }
                     }
+                } catch(e) {
+                    addMsg("bot", `❌ Failed to reach Gemini: ${e.message}. Check your internet connection or try re-saving your API key in Admin → Bot & AI Settings.`);
                 } finally { setLoading(false); }
             } else {
-                // No Gemini key in localStorage — use backend /chat/ai (OpenRouter chain)
+                // No Gemini key — use backend /chat/ai
                 try {
                     const { data } = await axios.post(`${API_URL}/chat/ai`, { messages: newHistory });
                     addMsg("bot", data.reply);
@@ -337,13 +339,14 @@ export default function KoreBot() {
                 } catch(e) {
                     const errMsg = e?.response?.data?.message || "";
                     if (errMsg.includes("not configured")) {
-                        addMsg("bot", "⚠️ AI mode isn't configured yet. The admin needs to add a Gemini or OpenRouter API key from Admin → Bot & AI Settings.\n\nMeanwhile, switch to **Search Mode** to find buses!");
+                        addMsg("bot", "⚠️ AI mode not configured. Go to **Admin → Bot & AI Settings** and add your Google Gemini API key (it's free at aistudio.google.com).");
                     } else {
                         addMsg("bot", `⚠️ ${errMsg || "AI is temporarily unavailable. Please try again."}`);
                     }
                 } finally { setLoading(false); }
             }
         }
+
     };
 
     const handleKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
