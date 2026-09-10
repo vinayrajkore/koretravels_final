@@ -125,7 +125,52 @@ function AdminSettings() {
                                 {showGemini ? "Hide" : "Show"}
                             </button>
                         </div>
-                        {savedGemini && <div style={{ fontSize: 12, color: "#16a34a", marginBottom: 4 }}>✅ Gemini key is configured — AI is using Google Gemini</div>}
+                        {savedGemini && <div style={{ fontSize: 12, color: "#16a34a", marginBottom: 8 }}>✅ Gemini key is configured — AI is using Google Gemini as primary</div>}
+
+                        {/* Save Gemini key button */}
+                        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                            <button
+                                onClick={async () => {
+                                    if (!geminiKey.trim()) return;
+                                    setLoading(true); setMsg(null);
+                                    try {
+                                        await axios.put(`${API_URL}/admin/settings`, { key: "gemini_api_key", value: geminiKey.trim() });
+                                        setSavedGemini(geminiKey.trim());
+                                        setMsg({ type: "success", text: "✅ Google Gemini API key saved! KoreBot AI will now use Gemini as primary provider." });
+                                    } catch(e) {
+                                        setMsg({ type: "error", text: "❌ Failed: " + (e?.response?.data?.message || e.message) });
+                                    } finally { setLoading(false); }
+                                }}
+                                disabled={loading || !geminiKey.trim() || geminiKey === savedGemini}
+                                style={{
+                                    flex: 1, padding: "11px", borderRadius: 10, border: "none",
+                                    background: (!loading && geminiKey.trim() && geminiKey !== savedGemini)
+                                        ? "linear-gradient(135deg, #1a73e8, #4285f4)"
+                                        : "#e2e8f0",
+                                    color: (!loading && geminiKey.trim() && geminiKey !== savedGemini) ? "#fff" : "#94a3b8",
+                                    fontWeight: 800, fontSize: 13,
+                                    cursor: (!loading && geminiKey.trim() && geminiKey !== savedGemini) ? "pointer" : "not-allowed",
+                                    transition: "all 0.2s",
+                                }}
+                            >
+                                {loading ? "Saving..." : geminiKey === savedGemini && savedGemini ? "✓ Gemini Key Saved" : "💾 Save Gemini Key"}
+                            </button>
+                            {savedGemini && (
+                                <button
+                                    onClick={async () => {
+                                        setLoading(true);
+                                        try {
+                                            await axios.put(`${API_URL}/admin/settings`, { key: "gemini_api_key", value: "" });
+                                            setGeminiKey(""); setSavedGemini("");
+                                            setMsg({ type: "success", text: "Gemini key removed." });
+                                        } catch(e) { setMsg({ type: "error", text: "Failed to remove." }); }
+                                        finally { setLoading(false); }
+                                    }}
+                                    disabled={loading}
+                                    style={{ padding: "11px 16px", borderRadius: 10, border: "1.5px solid #fca5a5", background: "#fff5f5", color: "#dc2626", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+                                >Remove</button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
