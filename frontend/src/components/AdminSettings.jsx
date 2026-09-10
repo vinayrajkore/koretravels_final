@@ -7,7 +7,7 @@ import API_URL from "../api";
 function AdminSettings() {
     const [key, setKey]         = useState("");
     const [saved, setSaved]     = useState("");
-    const [model, setModel]     = useState("meta-llama/llama-3.1-8b-instruct:free");
+    const [model, setModel]     = useState("mistralai/mistral-7b-instruct:free");
     const [savedModel, setSavedModel] = useState("");
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -15,14 +15,12 @@ function AdminSettings() {
     const [msg, setMsg]         = useState(null);
 
     const availableModels = [
-        { value: "meta-llama/llama-3.1-8b-instruct:free",          label: "✅ Llama 3.1 8B (Free — Recommended)" },
+        { value: "mistralai/mistral-7b-instruct:free",              label: "✅ Mistral 7B (Free — Recommended)" },
         { value: "meta-llama/llama-3.2-3b-instruct:free",           label: "✅ Llama 3.2 3B (Free)" },
-        { value: "mistralai/mistral-7b-instruct:free",              label: "✅ Mistral 7B (Free)" },
+        { value: "google/gemma-2-9b-it:free",                       label: "✅ Gemma 2 9B (Free)" },
         { value: "google/gemma-3-12b-it:free",                      label: "✅ Gemma 3 12B (Free)" },
         { value: "qwen/qwen-2-7b-instruct:free",                    label: "✅ Qwen 2 7B (Free)" },
         { value: "microsoft/phi-3-mini-128k-instruct:free",         label: "✅ Phi-3 Mini 128K (Free)" },
-        { value: "google/gemini-2.0-flash-lite-preview-02-05:free", label: "⚡ Gemini Flash Lite (Free)" },
-        { value: "openai/gpt-4o-mini-search-preview:free",          label: "🔍 GPT-4o Mini Search (Free)" },
     ];
 
     useEffect(() => {

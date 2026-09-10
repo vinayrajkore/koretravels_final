@@ -1048,24 +1048,23 @@ app.put("/admin/settings", async (req, res) => {
 //  KOREBOT - Chat Config
 app.get("/chat/config", async (req, res) => {
     try {
+        // Verified working free models on OpenRouter (updated Sept 2026)
         const FREE_MODELS = [
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "meta-llama/llama-3.2-3b-instruct:free",
             "mistralai/mistral-7b-instruct:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "google/gemma-2-9b-it:free",
             "google/gemma-3-12b-it:free",
             "qwen/qwen-2-7b-instruct:free",
             "microsoft/phi-3-mini-128k-instruct:free",
-            "openai/gpt-4o-mini-search-preview:free",
         ];
         const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
         const stored = modelRow?.value;
-        // Only use stored model if it's in the verified whitelist
         const aiModel = (stored && FREE_MODELS.includes(stored))
             ? stored
-            : "meta-llama/llama-3.1-8b-instruct:free";
+            : "mistralai/mistral-7b-instruct:free"; // most stable free model
         res.json({ model: aiModel });
     } catch(err) {
-        res.status(500).json({ model: "meta-llama/llama-3.1-8b-instruct:free" });
+        res.status(500).json({ model: "mistralai/mistral-7b-instruct:free" });
     }
 });
 
@@ -1101,21 +1100,20 @@ app.post("/chat/ai", async (req, res) => {
         if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
 
         const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
-        // Whitelist of verified working free OpenRouter models
+        // Verified working free models on OpenRouter (updated Sept 2026)
         const FREE_MODELS = [
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "meta-llama/llama-3.2-3b-instruct:free",
             "mistralai/mistral-7b-instruct:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "google/gemma-2-9b-it:free",
             "google/gemma-3-12b-it:free",
             "qwen/qwen-2-7b-instruct:free",
             "microsoft/phi-3-mini-128k-instruct:free",
-            "openai/gpt-4o-mini-search-preview:free",
         ];
         const storedModel = modelRow?.value;
-        // Only use stored model if it's in the verified whitelist
+        // Only use stored model if it's in the verified whitelist, else fallback to mistral
         const aiModel = (storedModel && FREE_MODELS.includes(storedModel))
             ? storedModel
-            : "meta-llama/llama-3.1-8b-instruct:free";
+            : "mistralai/mistral-7b-instruct:free";
 
         const body = JSON.stringify({
             model: aiModel,
