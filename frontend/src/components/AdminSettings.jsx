@@ -1,18 +1,21 @@
-// AdminSettings.jsx — Admin page to configure KoreBot AI (OpenRouter key)
+// AdminSettings.jsx — Admin page to configure KoreBot AI
 import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
 import axios from "axios";
 import API_URL from "../api";
 
 function AdminSettings() {
-    const [key, setKey]         = useState("");
-    const [saved, setSaved]     = useState("");
-    const [model, setModel]     = useState("mistralai/mistral-7b-instruct:free");
+    const [key, setKey]               = useState("");
+    const [saved, setSaved]           = useState("");
+    const [geminiKey, setGeminiKey]   = useState("");
+    const [savedGemini, setSavedGemini] = useState("");
+    const [model, setModel]           = useState("mistralai/mistral-7b-instruct:free");
     const [savedModel, setSavedModel] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(true);
-    const [show, setShow]       = useState(false);
-    const [msg, setMsg]         = useState(null);
+    const [loading, setLoading]       = useState(false);
+    const [fetching, setFetching]     = useState(true);
+    const [show, setShow]             = useState(false);
+    const [showGemini, setShowGemini] = useState(false);
+    const [msg, setMsg]               = useState(null);
 
     const availableModels = [
         { value: "mistralai/mistral-7b-instruct:free",              label: "✅ Mistral 7B (Free — Recommended)" },
@@ -27,21 +30,27 @@ function AdminSettings() {
         axios.get(`${API_URL}/admin/settings`)
             .then(r => { 
                 if (r.data?.openrouter_api_key) { setSaved(r.data.openrouter_api_key); setKey(r.data.openrouter_api_key); } 
-                if (r.data?.openrouter_model) { setSavedModel(r.data.openrouter_model); setModel(r.data.openrouter_model); }
+                if (r.data?.openrouter_model)   { setSavedModel(r.data.openrouter_model); setModel(r.data.openrouter_model); }
+                if (r.data?.gemini_api_key)     { setSavedGemini(r.data.gemini_api_key); setGeminiKey(r.data.gemini_api_key); }
             })
             .catch(() => {})
             .finally(() => setFetching(false));
     }, []);
 
     const handleSave = async () => {
-        if (!key.trim()) return;
         setLoading(true); setMsg(null);
         try {
-            await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_api_key", value: key.trim() });
-            await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_model", value: model });
-            setSaved(key.trim());
-            setSavedModel(model);
-            setMsg({ type: "success", text: "✅ OpenRouter AI settings saved! KoreBot AI mode is now updated." });
+            if (geminiKey.trim()) {
+                await axios.put(`${API_URL}/admin/settings`, { key: "gemini_api_key", value: geminiKey.trim() });
+                setSavedGemini(geminiKey.trim());
+            }
+            if (key.trim()) {
+                await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_api_key", value: key.trim() });
+                await axios.put(`${API_URL}/admin/settings`, { key: "openrouter_model", value: model });
+                setSaved(key.trim()); setSavedModel(model);
+            }
+            if (!key.trim() && !geminiKey.trim()) return setMsg({ type: "error", text: "Enter at least one API key." });
+            setMsg({ type: "success", text: "✅ AI settings saved! KoreBot will use Gemini first, OpenRouter as fallback." });
         } catch(e) {
             setMsg({ type: "error", text: "❌ Failed to save: " + (e?.response?.data?.message || e.message) });
         } finally { setLoading(false); }
@@ -66,11 +75,58 @@ function AdminSettings() {
                 {/* Page title */}
                 <div style={{ marginBottom: 28 }}>
                     <h1 style={{ color: "#062f29", fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: "-0.4px" }}>
-                        ⚙️ Bot & AI Settings
+                        ⚙️ Bot &amp; AI Settings
                     </h1>
                     <p style={{ color: "#64748b", fontSize: 13, marginTop: 6 }}>
-                        Configure KoreBot's AI mode using an OpenRouter API key and model selection.
+                        Configure KoreBot's AI mode. <strong>Gemini is the primary provider</strong> — OpenRouter is used as fallback.
                     </p>
+                </div>
+
+                {/* ── GEMINI CARD (PRIMARY) ── */}
+                <div style={{ background: "#fff", borderRadius: 16, border: "2px solid #4285f4", overflow: "hidden", boxShadow: "0 4px 16px rgba(66,133,244,0.12)", marginBottom: 20 }}>
+                    <div style={{ background: "linear-gradient(135deg, #1a73e8 0%, #4285f4 100%)", padding: "18px 24px", display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 24 }}>
+                            ✨
+                        </div>
+                        <div>
+                            <div style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>Google Gemini API <span style={{ background: "#fff", color: "#1a73e8", fontSize: 10, borderRadius: 4, padding: "2px 6px", marginLeft: 6, fontWeight: 900 }}>PRIMARY</span></div>
+                            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>Most reliable · Free 15 req/min · Recommended</div>
+                        </div>
+                        <div style={{ marginLeft: "auto" }}>
+                            <span style={{
+                                background: savedGemini ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)",
+                                border: `1px solid ${savedGemini ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}`,
+                                color: savedGemini ? "#fff" : "rgba(255,255,255,0.5)",
+                                borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700,
+                            }}>
+                                {fetching ? "Loading..." : savedGemini ? "● Active" : "○ Not set"}
+                            </span>
+                        </div>
+                    </div>
+                    <div style={{ padding: "20px 24px" }}>
+                        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 12 }}>
+                            <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>Get your free Google Gemini API key:</div>
+                            <ol style={{ color: "#1e40af", margin: 0, paddingLeft: 18, lineHeight: 1.9 }}>
+                                <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>aistudio.google.com/app/apikey</a></li>
+                                <li>Sign in with Google → click <strong>Create API Key</strong></li>
+                                <li>Copy and paste the key below</li>
+                            </ol>
+                        </div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6, display: "block" }}>Gemini API Key</label>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                            <input
+                                type={showGemini ? "text" : "password"}
+                                value={geminiKey}
+                                onChange={e => setGeminiKey(e.target.value)}
+                                placeholder="AIza..."
+                                style={{ flex: 1, border: "1.5px solid #dbeafe", borderRadius: 10, padding: "10px 14px", fontSize: 13, fontFamily: "monospace", outline: "none" }}
+                            />
+                            <button onClick={() => setShowGemini(s => !s)} style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid #dbeafe", background: "#eff6ff", color: "#1e40af", cursor: "pointer", fontSize: 12 }}>
+                                {showGemini ? "Hide" : "Show"}
+                            </button>
+                        </div>
+                        {savedGemini && <div style={{ fontSize: 12, color: "#16a34a", marginBottom: 4 }}>✅ Gemini key is configured — AI is using Google Gemini</div>}
+                    </div>
                 </div>
 
                 {/* KoreBot AI Card */}

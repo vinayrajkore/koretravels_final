@@ -1151,9 +1151,61 @@ app.post("/chat/ai", async (req, res) => {
     try {
         const { messages } = req.body;
 
+        // Check for Gemini API key (PRIMARY provider)
+        const [[geminiRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='gemini_api_key'").catch(() => [[null]]);
+        const geminiKey = geminiRow?.value;
+
+        if (geminiKey) {
+            // Use Google Gemini 1.5 Flash (free, reliable, fast)
+            try {
+                const systemPrompt = `You are KoreBot, a helpful AI travel assistant for Kore Travels - India's trusted bus booking platform in Maharashtra. You ONLY answer questions about: travel, tourism, bus journeys, transportation, journey planning, travel safety, packing tips, Indian destinations, seat types, cancellation, luggage, boarding points, or Kore Travels services. STRICT RULES: (1) If someone asks unrelated topics - say: I am KoreBot, specialized only in travel and bus booking. I cannot help with that topic, but I would love to assist with your journey plans! (2) Be friendly, warm and concise. Reply in the same language as the user (Hindi, Marathi, or English).`;
+
+                const geminiMessages = messages.map(m => ({
+                    role: m.role === "assistant" ? "model" : "user",
+                    parts: [{ text: m.content }]
+                }));
+
+                const geminiBody = JSON.stringify({
+                    system_instruction: { parts: [{ text: systemPrompt }] },
+                    contents: geminiMessages,
+                    generationConfig: { maxOutputTokens: 512 }
+                });
+
+                const geminiResult = await new Promise((resolve) => {
+                    const greq = https.request({
+                        hostname: "generativelanguage.googleapis.com",
+                        path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    }, (gres) => {
+                        let data = "";
+                        gres.on("data", chunk => data += chunk);
+                        gres.on("end", () => {
+                            try {
+                                const json = JSON.parse(data);
+                                const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                                if (text) resolve({ reply: text });
+                                else resolve({ error: json.error?.message || "No response from Gemini" });
+                            } catch(e) { resolve({ error: "Gemini parse error" }); }
+                        });
+                    });
+                    greq.on("error", e => resolve({ error: e.message }));
+                    greq.write(geminiBody);
+                    greq.end();
+                });
+
+                if (geminiResult.reply) return res.json({ reply: geminiResult.reply });
+                // Gemini failed — fall through to OpenRouter
+                console.log("Gemini failed:", geminiResult.error, "— trying OpenRouter fallback");
+            } catch(e) {
+                console.log("Gemini exception:", e.message, "— trying OpenRouter fallback");
+            }
+        }
+
+        // OpenRouter fallback chain
         const [[settingRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_api_key'").catch(() => [[null]]);
         const apiKey = settingRow?.value;
-        if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
+        if (!apiKey) return res.status(503).json({ message: "AI not configured. Go to Admin → Settings and add a Gemini or OpenRouter API key." });
 
         const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
         const preferred = modelRow?.value;
