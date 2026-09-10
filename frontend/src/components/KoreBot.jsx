@@ -301,65 +301,73 @@ export default function KoreBot() {
                         parts: [{ text: i === 0 ? `${systemPrompt}\n\nUser: ${m.content}` : m.content }]
                     }));
 
-                    const callGeminiModel = async (modelName) => {
+                    const callModel = async (modelName) => {
                         const r = await fetch(
                             `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
-                            {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 512, temperature: 0.7 } })
-                            }
+                            { method: "POST", headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 512, temperature: 0.7 } }) }
                         );
                         return r.json();
                     };
 
-                    // Step 1: List available models dynamically
+                    // Fetch available models for this key
                     const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
                     const modelsJson = await modelsRes.json();
-                    if (modelsJson.error) { addMsg("bot", `❌ Gemini key error: ${modelsJson.error.message}`); setLoading(false); return; }
+                    if (modelsJson.error) { addMsg("bot", `❌ API key error: ${modelsJson.error.message}`); setLoading(false); return; }
 
-                    const available = (modelsJson.models || [])
+                    // Build ordered list: flash models first (newest first), then others
+                    const allModels = (modelsJson.models || [])
                         .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
                         .map(m => m.name.replace("models/", ""))
-                        // Sort: newest version numbers first
                         .sort((a, b) => {
-                            const vA = parseFloat((a.match(/(\d+\.\d+|\d+)/)?.[0]) || 0);
-                            const vB = parseFloat((b.match(/(\d+\.\d+|\d+)/)?.[0]) || 0);
+                            const isFlashA = a.includes("flash") ? 1 : 0;
+                            const isFlashB = b.includes("flash") ? 1 : 0;
+                            if (isFlashA !== isFlashB) return isFlashB - isFlashA;
+                            const vA = parseFloat((a.match(/(\d+\.?\d*)/)?.[0]) || 0);
+                            const vB = parseFloat((b.match(/(\d+\.?\d*)/)?.[0]) || 0);
                             return vB - vA;
                         });
 
-                    if (!available.length) { addMsg("bot", "❌ No Gemini models available. Please create a new API key at aistudio.google.com."); setLoading(false); return; }
+                    if (!allModels.length) { addMsg("bot", "❌ No models available. Create a new API key at aistudio.google.com."); setLoading(false); return; }
 
-                    // Pick best flash model, fallback to first available
-                    const modelToUse = available.find(m => m.includes("flash")) || available[0];
+                    // Try each model; skip on retryable errors (demand/deprecated/not found)
+                    const retryable = (msg) => {
+                        const m = (msg || "").toLowerCase();
+                        return m.includes("high demand") || m.includes("no longer available") ||
+                               m.includes("not found") || m.includes("not supported") ||
+                               m.includes("overloaded") || m.includes("capacity") || m.includes("503");
+                    };
 
-                    // Step 2: Call chosen model
-                    let json = await callGeminiModel(modelToUse);
+                    let reply = null;
+                    let lastErr = "";
+                    const tried = new Set();
 
-                    // Step 3: If deprecated, parse suggested model from error and retry
-                    if (json.error) {
-                        const errMsg = json.error.message || "";
-                        const suggestedMatch = errMsg.match(/models\/([\w.-]+)/);
-                        if (suggestedMatch && errMsg.toLowerCase().includes("no longer available")) {
-                            const suggestedModel = suggestedMatch[1];
-                            json = await callGeminiModel(suggestedModel);
+                    for (const modelName of allModels) {
+                        if (tried.has(modelName)) continue;
+                        tried.add(modelName);
+                        const json = await callModel(modelName);
+                        if (!json.error) {
+                            reply = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                            if (reply) break;
+                        } else {
+                            lastErr = json.error.message || "Unknown error";
+                            // If deprecated, also enqueue the suggested replacement
+                            const suggested = lastErr.match(/models\/([\w.-]+)/)?.[1];
+                            if (suggested && !tried.has(suggested)) allModels.push(suggested);
+                            if (!retryable(lastErr)) break; // Fatal error — stop
                         }
                     }
 
-                    if (json.error) {
-                        addMsg("bot", `❌ Gemini error: ${json.error.message}`);
+                    if (reply) {
+                        addMsg("bot", reply);
+                        setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
                     } else {
-                        const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (reply) {
-                            addMsg("bot", reply);
-                            setAiHistory(prev => [...prev, { role: "assistant", content: reply }]);
-                        } else {
-                            addMsg("bot", "⚠️ Gemini returned empty response. Please try again.");
-                        }
+                        addMsg("bot", `⚠️ All Gemini models are currently busy. Please try again in 30 seconds.\n\n_(${lastErr})_`);
                     }
                 } catch(e) {
                     addMsg("bot", `❌ Network error: ${e.message}`);
                 } finally { setLoading(false); }
+
 
 
 
