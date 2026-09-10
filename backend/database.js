@@ -1090,40 +1090,15 @@ app.post("/chat/search", async (req, res) => {
 
 // POST /chat/ai — proxy to OpenRouter
 const https = require("https");
-app.post("/chat/ai", async (req, res) => {
-    try {
-        const { messages } = req.body;
 
-        // Get the API key and model from settings table
-        const [[settingRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_api_key'").catch(() => [[null]]);
-        const apiKey = settingRow?.value;
-        if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
-
-        const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
-        // Verified working free models on OpenRouter (updated Sept 2026)
-        const FREE_MODELS = [
-            "mistralai/mistral-7b-instruct:free",
-            "meta-llama/llama-3.2-3b-instruct:free",
-            "google/gemma-2-9b-it:free",
-            "google/gemma-3-12b-it:free",
-            "qwen/qwen-2-7b-instruct:free",
-            "microsoft/phi-3-mini-128k-instruct:free",
-        ];
-        const storedModel = modelRow?.value;
-        // Only use stored model if it's in the verified whitelist, else fallback to mistral
-        const aiModel = (storedModel && FREE_MODELS.includes(storedModel))
-            ? storedModel
-            : "mistralai/mistral-7b-instruct:free";
+// Helper: call OpenRouter with a specific model, returns Promise<{reply, error, retryable}>
+function callOpenRouter(apiKey, model, messages) {
+    return new Promise((resolve) => {
+        const systemPrompt = `You are KoreBot, a helpful AI travel assistant for Kore Travels - India's trusted bus booking platform in Maharashtra. You ONLY answer questions about: travel, tourism, bus journeys, transportation, journey planning, travel safety, packing tips, Indian destinations, seat types, cancellation, luggage, boarding points, or Kore Travels services. STRICT RULES: (1) If someone asks about unrelated topics like politics, PM of India, coding, science, sports, celebrities, or general knowledge - politely say: I am KoreBot, specialized only in travel and bus booking assistance. I cannot help with that topic, but I would love to assist with your journey plans! (2) Never write code, essays, or answer factual non-travel questions. (3) For specific bus availability or booking questions, tell them to use the Search Mode in this chat or visit the home page. (4) Be friendly, warm and concise. Always reply in the same language as the user (Hindi, Marathi, or English). (5) If you cannot fully answer a travel question, suggest contacting Kore Travels: WhatsApp 8669427006 or Call 8554886526.`;
 
         const body = JSON.stringify({
-            model: aiModel,
-            messages: [
-                {
-                    role: "system",
-                    content: `You are KoreBot, a helpful AI travel assistant for Kore Travels - India's trusted bus booking platform in Maharashtra. You ONLY answer questions about: travel, tourism, bus journeys, transportation, journey planning, travel safety, packing tips, Indian destinations, seat types, cancellation, luggage, boarding points, or Kore Travels services. STRICT RULES: (1) If someone asks about unrelated topics like politics, PM of India, coding, science, sports, celebrities, or general knowledge - politely say: I am KoreBot, specialized only in travel and bus booking assistance. I cannot help with that topic, but I would love to assist with your journey plans! (2) Never write code, essays, or answer factual non-travel questions. (3) For specific bus availability or booking questions, tell them to use the Search Mode in this chat or visit the home page. (4) Be friendly, warm and concise. Always reply in the same language as the user (Hindi, Marathi, or English). (5) If you cannot fully answer a travel question, suggest contacting Kore Travels: WhatsApp 8669427006 or Call 8554886526.`
-                },
-                ...messages
-            ],
+            model,
+            messages: [{ role: "system", content: systemPrompt }, ...messages],
             max_tokens: 512
         });
 
@@ -1139,21 +1114,80 @@ app.post("/chat/ai", async (req, res) => {
             }
         };
 
-        const proxyReq = https.request(options, (proxyRes) => {
+        const req = https.request(options, (proxyRes) => {
             let data = "";
             proxyRes.on("data", chunk => data += chunk);
             proxyRes.on("end", () => {
                 try {
                     const json = JSON.parse(data);
-                    if (json.error) return res.status(500).json({ message: json.error.message || "AI error" });
-                    const reply = json.choices?.[0]?.message?.content || "Sorry, I couldn't get a response.";
-                    res.json({ reply });
-                } catch(e) { res.status(500).json({ message: "Failed to parse AI response" }); }
+                    if (json.error) {
+                        const msg = (json.error.message || json.error.code || "").toLowerCase();
+                        // These errors mean "try another model"
+                        const retryable = msg.includes("no endpoint") ||
+                            msg.includes("unavailable") ||
+                            msg.includes("not a valid model") ||
+                            msg.includes("not found") ||
+                            msg.includes("overloaded") ||
+                            msg.includes("rate limit") ||
+                            msg.includes("context") ||
+                            msg.includes("capacity");
+                        resolve({ reply: null, error: json.error.message, retryable });
+                    } else {
+                        const reply = json.choices?.[0]?.message?.content || "Sorry, I couldn't get a response.";
+                        resolve({ reply, error: null, retryable: false });
+                    }
+                } catch(e) {
+                    resolve({ reply: null, error: "Parse error", retryable: true });
+                }
             });
         });
-        proxyReq.on("error", e => res.status(500).json({ message: e.message }));
-        proxyReq.write(body);
-        proxyReq.end();
+        req.on("error", e => resolve({ reply: null, error: e.message, retryable: true }));
+        req.write(body);
+        req.end();
+    });
+}
+
+app.post("/chat/ai", async (req, res) => {
+    try {
+        const { messages } = req.body;
+
+        const [[settingRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_api_key'").catch(() => [[null]]);
+        const apiKey = settingRow?.value;
+        if (!apiKey) return res.status(503).json({ message: "AI mode not configured. Admin has not set the OpenRouter API key yet." });
+
+        const [[modelRow]] = await db.query("SELECT `value` FROM settings WHERE `key`='openrouter_model'").catch(() => [[null]]);
+        const preferred = modelRow?.value;
+
+        // Full fallback chain — tried in order until one succeeds
+        const ALL_FALLBACKS = [
+            "mistralai/mistral-7b-instruct:free",
+            "qwen/qwen-2-7b-instruct:free",
+            "google/gemma-2-9b-it:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "google/gemma-3-12b-it:free",
+            "microsoft/phi-3-mini-128k-instruct:free",
+            "nousresearch/hermes-3-llama-3.1-8b:free",
+            "deepseek/deepseek-r1:free",
+        ];
+
+        // Put preferred model first if it's in the list
+        const modelsToTry = preferred && ALL_FALLBACKS.includes(preferred)
+            ? [preferred, ...ALL_FALLBACKS.filter(m => m !== preferred)]
+            : ALL_FALLBACKS;
+
+        let lastError = "AI service temporarily unavailable. Please try again in a moment.";
+
+        for (const model of modelsToTry) {
+            const result = await callOpenRouter(apiKey, model, messages);
+            if (result.reply) {
+                return res.json({ reply: result.reply });
+            }
+            lastError = result.error || lastError;
+            if (!result.retryable) break; // Non-retryable error (bad key etc) — stop trying
+        }
+
+        // All models failed
+        res.status(503).json({ message: `⚠️ AI temporarily unavailable (all models busy). Please try again in 30 seconds.` });
 
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
