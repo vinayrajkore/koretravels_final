@@ -220,18 +220,18 @@ function AdminSettings() {
                         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                             <button
                                 onClick={handleSave}
-                                disabled={loading || !key.trim() || (key === saved && model === savedModel)}
+                                disabled={loading || (!key.trim() && !geminiKey.trim()) || (key === saved && model === savedModel && geminiKey === savedGemini)}
                                 style={{
                                     flex: 1, padding: "11px", borderRadius: 10, border: "none",
-                                    background: (!loading && key.trim() && (key !== saved || model !== savedModel))
+                                    background: (!loading && (key.trim() || geminiKey.trim()) && (key !== saved || model !== savedModel || geminiKey !== savedGemini))
                                         ? "linear-gradient(135deg, #0d3d35, #1a7a6e)"
                                         : "#e2e8f0",
-                                    color: (!loading && key.trim() && (key !== saved || model !== savedModel)) ? "#c8ff00" : "#94a3b8",
-                                    fontWeight: 800, fontSize: 13, cursor: (!loading && key.trim() && (key !== saved || model !== savedModel)) ? "pointer" : "not-allowed",
+                                    color: (!loading && (key.trim() || geminiKey.trim()) && (key !== saved || model !== savedModel || geminiKey !== savedGemini)) ? "#c8ff00" : "#94a3b8",
+                                    fontWeight: 800, fontSize: 13, cursor: (!loading && (key.trim() || geminiKey.trim()) && (key !== saved || model !== savedModel || geminiKey !== savedGemini)) ? "pointer" : "not-allowed",
                                     transition: "all 0.2s",
                                 }}
                             >
-                                {loading ? "Saving..." : (key === saved && model === savedModel && saved) ? "✓ Saved" : "Save Settings"}
+                                {loading ? "Saving..." : (key === saved && model === savedModel && geminiKey === savedGemini && (saved || savedGemini)) ? "✓ Saved" : "Save All Settings"}
                             </button>
                             {saved && (
                                 <button onClick={handleClear} disabled={loading} style={{
