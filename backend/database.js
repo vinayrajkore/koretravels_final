@@ -195,6 +195,72 @@ app.post("/login", async (req, res) => {
 
 
 // ════════════════════════════════════════════════════════════
+//  FORGOT PASSWORD — verify by name + phone + email, send password via email
+// ════════════════════════════════════════════════════════════
+
+app.post("/forgot-password", async (req, res) => {
+    try {
+        const { name, phone, email } = req.body;
+
+        if (!name || !phone || !email)
+            return res.json({ message: "All fields are required.", flag: 0 });
+
+        const [rows] = await db.query(
+            "SELECT id, name, email, password FROM users WHERE LOWER(name)=LOWER(?) AND phone=? AND LOWER(email)=LOWER(?)",
+            [name.trim(), phone.trim(), email.trim()]
+        );
+
+        if (rows.length === 0)
+            return res.json({ message: "No account found with these details. Please check your name, mobile number and email.", flag: 0 });
+
+        const u = rows[0];
+
+        await transporter.sendMail({
+            from: '"Kore Travels" <ranuh441@gmail.com>',
+            to: u.email,
+            subject: "🔑 Your Kore Travels Password Recovery",
+            html: `<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f7f6;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f7f6;padding:40px 20px;">
+                <tr><td align="center">
+                  <table width="500" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#0d3d35 0%,#1a7a6e 100%);padding:30px;text-align:center;">
+                        <img src="https://res.cloudinary.com/xg8ljc6l/image/upload/v1786572822/busbooking/kore_travels_email_logo.png" alt="Kore Travels" style="background-color:#ffffff;padding:10px;border-radius:10px;height:50px;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto;" />
+                        <h2 style="color:#ffffff;margin:0;font-size:22px;">Password Recovery</h2>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:35px 30px;text-align:center;">
+                        <h3 style="color:#0d3d35;margin-top:0;font-size:20px;">Hello, ${u.name}! 👋</h3>
+                        <p style="color:#475569;font-size:15px;line-height:1.6;margin-bottom:20px;">You requested to recover your Kore Travels account password.</p>
+                        <div style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border:2px solid #1a7a6e;border-radius:12px;padding:20px 30px;margin:20px 0;">
+                          <p style="color:#64748b;font-size:12px;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:1px;">Your Password</p>
+                          <p style="color:#0d3d35;font-size:28px;font-weight:800;letter-spacing:4px;margin:0;">${u.password}</p>
+                        </div>
+                        <p style="color:#ef4444;font-size:13px;margin:16px 0 24px 0;">⚠️ For your security, please update your password after logging in.</p>
+                        <a href="${process.env.FRONTEND_URL || 'https://koretravels-final.pages.dev'}/login" style="display:inline-block;padding:12px 28px;background-color:#1a7a6e;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-size:15px;">Login Now →</a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background-color:#0f172a;padding:15px;text-align:center;">
+                        <p style="color:#94a3b8;margin:0;font-size:12px;">© ${new Date().getFullYear()} Kore Travels. All rights reserved.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>`
+        });
+
+        res.json({ message: "Your password has been sent to your registered email address. Please check your inbox.", flag: 1 });
+    } catch (err) {
+        console.error("Forgot password error:", err.message);
+        res.status(500).json({ message: "Failed to send email. Please try again later." });
+    }
+});
+
+
+// ════════════════════════════════════════════════════════════
 //  BUS ROUTES
 // ════════════════════════════════════════════════════════════
 
